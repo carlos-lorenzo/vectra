@@ -39,6 +39,8 @@
 
 # debug information files
 *.dwo
+
+# IDE files
 .idea/
 copilot.*
 .xml
