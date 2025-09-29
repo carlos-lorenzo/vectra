@@ -24,6 +24,7 @@ find_package(glfw3 REQUIRED)
 set(SOURCES
         src/main.cpp
         # Add your other source files here
+        src/rendering/shader.cpp
 )
 
 # Add GLAD (assuming you'll download it manually)
@@ -32,12 +33,31 @@ add_library(glad "${GLAD_DIR}/src/glad.c")
 target_include_directories(glad PUBLIC "${GLAD_DIR}/include")
 
 
+# Create resources directory in the build folder
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/resources/shaders)
 
-# Add this before add_executable
-add_subdirectory(external/linkit)
+
 
 # Create executable
 add_executable(${PROJECT_NAME} ${SOURCES})
+
+add_custom_command(
+        TARGET ${PROJECT_NAME} PRE_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_SOURCE_DIR}/resources/shaders/
+        ${CMAKE_BINARY_DIR}/resources/shaders/
+        COMMENT "Copying shader files to build directory"
+)
+
+
+# Add this before add_executable
+add_subdirectory(external/linkit)
+add_subdirectory(src/rendering)
+
+
+set(RESOURCES_DIR "${CMAKE_BINARY_DIR}/resources")
+target_compile_definitions(${PROJECT_NAME} PRIVATE "RESOURCES_PATH=\"${RESOURCES_DIR}\"")
+
 
 # Link libraries
 target_link_libraries(${PROJECT_NAME}
@@ -45,6 +65,7 @@ target_link_libraries(${PROJECT_NAME}
         PRIVATE glfw
         PRIVATE glad
         PRIVATE linkit
+        PRIVATE rendering
 )
 
 # Include directories
