@@ -7,24 +7,25 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Find OpenGL package
 find_package(OpenGL REQUIRED)
 
-# Add GLFW (you may need to install this)
-# Option 1: If you have GLFW installed system-wide
-find_package(glfw3 REQUIRED)
+
 
 # Option 2: Or use FetchContent to download it
-# include(FetchContent)
-# FetchContent_Declare(
-#   glfw
-#   GIT_REPOSITORY https://github.com/glfw/glfw.git
-#   GIT_TAG 3.3.8
-# )
-# FetchContent_MakeAvailable(glfw)
+include(FetchContent)
+FetchContent_Declare(
+    glfw
+    GIT_REPOSITORY https://github.com/glfw/glfw.git
+    GIT_TAG 3.3.8
+)
+FetchContent_MakeAvailable(glfw)
 
 # Add your source files
 set(SOURCES
         src/main.cpp
         # Add your other source files here
         src/rendering/shader.cpp
+        src/physics/rigidbody.cpp
+        src/core/gameobject.cpp
+        src/rendering/mesh.cpp
 )
 
 # Add GLAD (assuming you'll download it manually)
@@ -53,7 +54,8 @@ add_custom_command(
 # Add this before add_executable
 add_subdirectory(external/linkit)
 add_subdirectory(src/rendering)
-
+add_subdirectory(src/physics)
+add_subdirectory(src/core)
 
 set(RESOURCES_DIR "${CMAKE_BINARY_DIR}/resources")
 target_compile_definitions(${PROJECT_NAME} PRIVATE "RESOURCES_PATH=\"${RESOURCES_DIR}\"")
@@ -64,8 +66,10 @@ target_link_libraries(${PROJECT_NAME}
         PRIVATE OpenGL::GL
         PRIVATE glfw
         PRIVATE glad
-        PRIVATE linkit
+        INTERFACE linkit
         PRIVATE rendering
+        PRIVATE physics
+        PRIVATE core
 )
 
 # Include directories

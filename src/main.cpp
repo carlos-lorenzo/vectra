@@ -3,6 +3,7 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 
+#include "gameobject.h"
 #include "vectra/rendering/shader.h"
 
 
@@ -42,23 +43,22 @@ int main()
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
 
-    std::string vertexShaderPath = std::string(RESOURCES_PATH) + "/shaders/test.vert";
-    std::string fragmentShaderPath = std::string(RESOURCES_PATH) + "/shaders/test.frag";
+    std::string vertexShaderPath = std::string(RESOURCES_PATH) + "/shaders/identity.vert";
+    std::string fragmentShaderPath = std::string(RESOURCES_PATH) + "/shaders/identity.frag";
 
     const Shader shaderProgram(vertexShaderPath.c_str(), fragmentShaderPath.c_str());
 
-    const float vertices[] = {
-        -0.5f, -0.5f, 0.0f,
-        -0.25f, 0.5f, 0.0f,
-        0.0f,  -0.5f, 0.0f,
-        0.25f, 0.5f, 0.0f,
-        0.5f, -0.5f, 0.0f,
-    };
+    GameObject obj;
+    obj.transform.scale = linkit::Vector3(0.1, 0.1, 0.1);
+    obj.mesh.construct_vertices();
+    obj.mesh.normalise_vertices();
+    for (auto v: obj.mesh.vertices)
+    {
+        std::cout << v << " ";
+    }
+    std::cout << std::endl;
 
-    const int indices[] = {
-        0, 1, 2,
-        2, 3, 4
-    };
+
 
     unsigned int VBO; //GLuint
     unsigned int VAO;
@@ -74,10 +74,10 @@ int main()
     // Setting VBO to be an array buffer
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     // Copying vertex data to buffer's memory
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(obj.mesh.vertices), obj.mesh.vertices, GL_STATIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(obj.mesh.indices), obj.mesh.indices, GL_STATIC_DRAW);
 
 
     // specifies how OpenGL should interpret the vertex data
@@ -85,6 +85,7 @@ int main()
     glEnableVertexAttribArray(0);
 
     // Render loop
+
     while(!glfwWindowShouldClose(window))
     {
         processInput(window);
@@ -94,10 +95,6 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT);
 
         shaderProgram.use();
-
-        float time = glfwGetTime();
-        float greenValue = (std::sin(time) / 2.0f) + 0.5f;
-        shaderProgram.set_vec4("current_color", 0.0f, greenValue, 0.0f, 1.0f);
 
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);

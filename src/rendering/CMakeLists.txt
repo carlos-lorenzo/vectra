@@ -7,3 +7,4 @@ target_include_directories(rendering
         ${CMAKE_CURRENT_SOURCE_DIR}/../../external/glad/include
         ${CMAKE_CURRENT_SOURCE_DIR}/../../include
 )
+target_link_libraries(rendering PUBLIC linkit)
