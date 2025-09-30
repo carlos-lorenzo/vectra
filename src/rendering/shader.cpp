@@ -105,8 +105,14 @@ void Shader::set_vec4(const std::string &name, float x, float y, float z, float 
     glUniform4f(glGetUniformLocation(ID, name.c_str()), x, y, z, w);
 }
 
-    // ------------------------------------------------------------------------
+void Shader::set_mat4(const std::string& name, glm::mat4 mat) const
+{
+    // Get the location of the "model" uniform in the shader and set the uniform value
+    glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, glm::value_ptr(mat));
+}
 
+
+// ------------------------------------------------------------------------
 // utility function for checking shader compilation/linking errors.
 // ------------------------------------------------------------------------
 void Shader::check_compile_errors(const unsigned int shader, const std::string& type)

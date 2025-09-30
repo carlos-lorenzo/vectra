@@ -12,7 +12,6 @@
 class GameObject
 {
     public:
-        Transform transform;
         Rigidbody rb;
         Mesh mesh;
 

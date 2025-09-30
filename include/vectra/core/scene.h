@@ -4,6 +4,7 @@
 
 #include <vector>
 
+#include "vectra/rendering/camera.h"
 #include "vectra/core/gameobject.h"
 
 class Scene
@@ -11,6 +12,7 @@ class Scene
     public:
         Scene();
         std::vector<GameObject> game_objects;
+        Camera camera;
         void add_game_object(const GameObject& obj);
 
 };

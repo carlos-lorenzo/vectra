@@ -4,3 +4,6 @@
 [submodule "external/linkit"]
 	path = external/linkit
 	url = https://github.com/carlos-lorenzo/linkit.git
+[submodule "external/glm"]
+	path = external/glm
+	url = https://github.com/g-truc/glm.git

@@ -4,6 +4,8 @@
 Scene::Scene()
 {
     game_objects = std::vector<GameObject>();
+    camera = Camera();
+
 }
 
 void Scene::add_game_object(const GameObject& obj)

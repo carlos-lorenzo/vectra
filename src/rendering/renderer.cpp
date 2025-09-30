@@ -1,6 +1,9 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include "vectra/rendering/renderer.h"
 #include "../../include/vectra/core/scene.h"
@@ -43,7 +46,7 @@ Renderer::Renderer(const int width, const int height)
     glfwSetFramebufferSizeCallback(pWindow_, framebuffer_size_callback);
 }
 
-void Renderer::draw_frame(Scene &scene) const
+void Renderer::draw_frame(const Scene &scene) const
 {
     process_input(pWindow_);
     // will be replaced by scene background/skybox...
@@ -51,7 +54,7 @@ void Renderer::draw_frame(Scene &scene) const
     glClear(GL_COLOR_BUFFER_BIT);
     for (const auto& obj : scene.game_objects)
     {
-        draw_game_object(obj);
+        draw_game_object(obj, scene.camera);
     }
 
     glfwSwapBuffers(pWindow_);
@@ -59,12 +62,17 @@ void Renderer::draw_frame(Scene &scene) const
 }
 
 
-void Renderer::play_scene(Scene &scene) const
+void Renderer::play_scene(const Scene &scene) const
 {
     while(!glfwWindowShouldClose(pWindow_))
     {
         draw_frame(scene);
     }
+    cleanup(scene);
+}
+
+void Renderer::cleanup(const Scene &scene) const
+{
     for (const auto& obj : scene.game_objects)
     {
         obj.mesh.some_shader.delete_program();
@@ -73,11 +81,20 @@ void Renderer::play_scene(Scene &scene) const
         glDeleteBuffers(1, &obj.mesh.EBO);
     }
     glfwTerminate();
+    glfwDestroyWindow(pWindow_);
+    glfwTerminate();
 }
 
-void Renderer::draw_game_object(const GameObject &obj)
+
+void Renderer::draw_game_object(const GameObject &obj, const Camera& cam)
 {
     obj.mesh.some_shader.use();
+    glm::mat4 model = Camera::get_model_matrix(obj);
+    glm::mat4 view = cam.get_view_matrix();
+    glm::mat4 projection = glm::mat4(1.0f); //cam.get_projection_matrix();
+    obj.mesh.some_shader.set_mat4("model", model);
+    obj.mesh.some_shader.set_mat4("view", view);
+    obj.mesh.some_shader.set_mat4("projection", projection);
     glBindVertexArray(obj.mesh.VAO);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }

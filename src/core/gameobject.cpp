@@ -6,4 +6,5 @@
 GameObject::GameObject()
 {
     mesh = Mesh();
+    rb = Rigidbody();
 }

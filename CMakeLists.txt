@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Find OpenGL package
 find_package(OpenGL REQUIRED)
 
-
+find_package(glm CONFIG REQUIRED)
 
 # Option 2: Or use FetchContent to download it
 include(FetchContent)
@@ -17,6 +17,9 @@ FetchContent_Declare(
     GIT_TAG 3.3.8
 )
 FetchContent_MakeAvailable(glfw)
+
+
+
 
 # Add your source files
 set(SOURCES
@@ -28,6 +31,7 @@ set(SOURCES
         src/rendering/mesh.cpp
         src/rendering/renderer.cpp
         src/core/scene.cpp
+        src/rendering/camera.cpp
 )
 
 # Add GLAD (assuming you'll download it manually)
@@ -69,11 +73,14 @@ target_link_libraries(${PROJECT_NAME}
         PRIVATE OpenGL::GL
         PRIVATE glfw
         PRIVATE glad
+        PRIVATE glm::glm
         INTERFACE linkit
         PRIVATE rendering
         PRIVATE physics
         PRIVATE core
+
 )
+
 
 # Include directories
 target_include_directories(${PROJECT_NAME}

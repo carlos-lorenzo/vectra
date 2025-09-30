@@ -11,8 +11,8 @@
 
 Mesh::Mesh()
     : some_shader( // This tells the compiler to initialize the 'some_shader' member...
-        (std::string(RESOURCES_PATH) + "/shaders/identity.vert").c_str(), // ...by calling the Shader constructor that takes two const char* arguments.
-        (std::string(RESOURCES_PATH) + "/shaders/identity.frag").c_str()
+        (std::string(RESOURCES_PATH) + "/shaders/object.vert").c_str(), // ...by calling the Shader constructor that takes two const char* arguments.
+        (std::string(RESOURCES_PATH) + "/shaders/object.frag").c_str()
       )
 {
     // The constructor body now runs AFTER some_shader has been successfully initialized.
