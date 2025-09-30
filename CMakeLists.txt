@@ -26,6 +26,8 @@ set(SOURCES
         src/physics/rigidbody.cpp
         src/core/gameobject.cpp
         src/rendering/mesh.cpp
+        src/rendering/renderer.cpp
+        src/core/scene.cpp
 )
 
 # Add GLAD (assuming you'll download it manually)
@@ -60,6 +62,7 @@ add_subdirectory(src/core)
 set(RESOURCES_DIR "${CMAKE_BINARY_DIR}/resources")
 target_compile_definitions(${PROJECT_NAME} PRIVATE "RESOURCES_PATH=\"${RESOURCES_DIR}\"")
 
+target_compile_definitions(rendering PRIVATE "RESOURCES_PATH=\"${RESOURCES_DIR}\"")
 
 # Link libraries
 target_link_libraries(${PROJECT_NAME}

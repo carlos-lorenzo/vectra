@@ -5,5 +5,5 @@
 
 GameObject::GameObject()
 {
-    mesh = Mesh(&transform);
+    mesh = Mesh();
 }

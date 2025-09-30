@@ -4,110 +4,19 @@
 #include <iostream>
 
 #include "gameobject.h"
-#include "vectra/rendering/shader.h"
+#include "vectra/rendering/renderer.h"
 
 
-void framebuffer_size_callback(GLFWwindow* window, const int width, const int height)
-{
-    glViewport(0, 0, width, height);
-}
 
-void processInput(GLFWwindow *window)
-{
-    if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, true);
-}
 
 int main()
 {
-    // Initialize GLFW
-    glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-    GLFWwindow* window = glfwCreateWindow(800, 600, "LearnOpenGL", nullptr, nullptr);
-    if (window == nullptr)
-    {
-        std::cout << "Failed to create GLFW window" << std::endl;
-        glfwTerminate();
-        return -1;
-    }
-    glfwMakeContextCurrent(window);
-    if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
-    {
-        std::cout << "Failed to initialize GLAD" << std::endl;
-        return -1;
-    }
-    glViewport(0, 0, 800, 600);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-
-
-    std::string vertexShaderPath = std::string(RESOURCES_PATH) + "/shaders/identity.vert";
-    std::string fragmentShaderPath = std::string(RESOURCES_PATH) + "/shaders/identity.frag";
-
-    const Shader shaderProgram(vertexShaderPath.c_str(), fragmentShaderPath.c_str());
-
+    Renderer scene_renderer(800, 600);
+    Scene scene;
     GameObject obj;
-    obj.transform.scale = linkit::Vector3(0.1, 0.1, 0.1);
-    obj.mesh.construct_vertices();
-    obj.mesh.normalise_vertices();
-    for (auto v: obj.mesh.vertices)
-    {
-        std::cout << v << " ";
-    }
-    std::cout << std::endl;
+    scene.add_game_object(obj);
 
+    scene_renderer.play_scene(scene);
 
-
-    unsigned int VBO; //GLuint
-    unsigned int VAO;
-    unsigned int EBO; // Element Buffer Object
-
-    // Defining VBO as a general buffer object
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
-    glGenVertexArrays(1, &VAO);
-
-    glBindVertexArray(VAO);
-
-    // Setting VBO to be an array buffer
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    // Copying vertex data to buffer's memory
-    glBufferData(GL_ARRAY_BUFFER, sizeof(obj.mesh.vertices), obj.mesh.vertices, GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(obj.mesh.indices), obj.mesh.indices, GL_STATIC_DRAW);
-
-
-    // specifies how OpenGL should interpret the vertex data
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), static_cast<void*>(nullptr));
-    glEnableVertexAttribArray(0);
-
-    // Render loop
-
-    while(!glfwWindowShouldClose(window))
-    {
-        processInput(window);
-
-        // Rendering commands here
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-
-        shaderProgram.use();
-
-        glBindVertexArray(VAO);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
-
-        glfwSwapBuffers(window);
-        glfwPollEvents();
-    }
-
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
-    glDeleteBuffers(1, &EBO);
-    shaderProgram.delete_program();
-
-    glfwTerminate();
     return 0;
 }

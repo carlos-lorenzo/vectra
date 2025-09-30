@@ -9,7 +9,11 @@
 #include <iostream>
 
 
-    // constructor generates the shader on the fly
+Shader::Shader() : ID(0)
+{
+}
+
+// constructor generates the shader on the fly
     // ------------------------------------------------------------------------
 Shader::Shader(const char* vertexPath, const char* fragmentPath) {
     // 1. retrieve the vertex/fragment source code from filePath
