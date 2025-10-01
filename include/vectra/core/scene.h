@@ -14,6 +14,7 @@ class Scene
         std::vector<GameObject> game_objects;
         Camera camera;
         void add_game_object(const GameObject& obj);
+        void step(linkit::real dt);
 
 };
 #endif //VECTRA_SCENE_H
