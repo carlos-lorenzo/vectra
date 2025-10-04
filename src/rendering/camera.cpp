@@ -7,7 +7,7 @@
 Camera::Camera()
 {
     transform = Transform();
-    transform.position = linkit::Vector3(0.0f, 0.0f, 0.0f);
+    transform.position = linkit::Vector3(0.0f, 0.0f, 10.0f);
     fov = 45.0f;
     aspectRatio = 4.0f / 3.0f;
     nearPlane = 0.1f;

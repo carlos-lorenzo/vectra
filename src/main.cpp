@@ -11,7 +11,7 @@
 
 int main()
 {
-    Renderer scene_renderer(800, 600);
+    Renderer scene_renderer(1920, 1080);
     Scene scene;
     GameObject obj;
     obj.rb.transform.rotation = linkit::Vector3(20, 0, 30);

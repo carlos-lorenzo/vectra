@@ -6,6 +6,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <stb/stb_image.h>
 
 #include "vectra/rendering/renderer.h"
 #include "vectra/core/scene.h"
@@ -46,6 +47,8 @@ Renderer::Renderer(const int width, const int height)
         glfwTerminate();
         return;
     }
+    // tell stb_image.h to flip loaded texture's on the y-axis (before loading model).
+    stbi_set_flip_vertically_on_load(true);
     glEnable(GL_DEPTH_TEST); // Enable depth testing
     glViewport(0, 0, width, height);
     glfwSetFramebufferSizeCallback(pWindow_, framebuffer_size_callback);
