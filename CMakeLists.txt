@@ -9,14 +9,15 @@ find_package(OpenGL REQUIRED)
 
 find_package(glm CONFIG REQUIRED)
 
-# Option 2: Or use FetchContent to download it
-include(FetchContent)
-FetchContent_Declare(
-    glfw
-    GIT_REPOSITORY https://github.com/glfw/glfw.git
-    GIT_TAG 3.3.8
-)
-FetchContent_MakeAvailable(glfw)
+
+
+
+# assimp configuration
+find_package(assimp REQUIRED)
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(ASSIMP_INJECT_DEBUG_POSTFIX OFF CACHE BOOL "" FORCE)
+set(ASSIMP_INSTALL OFF CACHE BOOL "" FORCE)
 
 
 
@@ -32,12 +33,14 @@ set(SOURCES
         src/rendering/renderer.cpp
         src/core/scene.cpp
         src/rendering/camera.cpp
+        src/rendering/model.cpp
 )
 
 # Add GLAD (assuming you'll download it manually)
 set(GLAD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/glad")
 add_library(glad "${GLAD_DIR}/src/glad.c")
 target_include_directories(glad PUBLIC "${GLAD_DIR}/include")
+
 
 
 # Create resources directory in the build folder
@@ -53,6 +56,14 @@ add_custom_command(
         COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${CMAKE_SOURCE_DIR}/resources/shaders/
         ${CMAKE_BINARY_DIR}/resources/shaders/
+        COMMENT "Copying shader files to build directory"
+)
+
+add_custom_command(
+        TARGET ${PROJECT_NAME} PRE_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_SOURCE_DIR}/resources/models/
+        ${CMAKE_BINARY_DIR}/resources/models/
         COMMENT "Copying shader files to build directory"
 )
 
@@ -78,6 +89,8 @@ target_link_libraries(${PROJECT_NAME}
         PRIVATE rendering
         PRIVATE physics
         PRIVATE core
+        PRIVATE assimp::assimp
+
 
 )
 

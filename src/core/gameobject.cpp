@@ -1,10 +1,8 @@
-//
-// Created by carlos on 9/29/25.
-//
 #include "vectra/core/gameobject.h"
+#include "vectra/rendering/mesh.h"
 
-GameObject::GameObject()
+GameObject::GameObject() : model("resources/models/cube/HydraMoonSimpleCube.fbx", true)
 {
-    mesh = Mesh();
     rb = Rigidbody();
+    shader = Shader("resources/shaders/model.vert", "resources/shaders/model.frag");
 }

@@ -8,7 +8,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "vectra/rendering/renderer.h"
-#include "../../include/vectra/core/scene.h"
+#include "vectra/core/scene.h"
 
 void framebuffer_size_callback(GLFWwindow* window, const int width, const int height)
 {
@@ -51,15 +51,15 @@ Renderer::Renderer(const int width, const int height)
     glfwSetFramebufferSizeCallback(pWindow_, framebuffer_size_callback);
 }
 
-void Renderer::draw_frame(const Scene &scene) const
+void Renderer::draw_frame(const Scene &scene)
 {
     process_input(pWindow_);
     // will be replaced by scene background/skybox...
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    for (const auto& obj : scene.game_objects)
+    for (int i = 0; i < scene.game_objects.size(); ++i)
     {
-
+        std::vector<GameObject>::value_type obj = scene.game_objects[i];
         draw_game_object(obj, scene.camera);
     }
 
@@ -111,10 +111,10 @@ void Renderer::cleanup(const Scene &scene)
 {
     for (const auto& obj : scene.game_objects)
     {
-        obj.mesh.some_shader.delete_program();
-        glDeleteVertexArrays(1, &obj.mesh.VAO);
-        glDeleteBuffers(1, &obj.mesh.VBO);
-        glDeleteBuffers(1, &obj.mesh.EBO);
+        // obj.mesh.some_shader.delete_program();
+        // glDeleteVertexArrays(1, &obj.mesh.VAO);
+        // glDeleteBuffers(1, &obj.mesh.VBO);
+        // glDeleteBuffers(1, &obj.mesh.EBO);
     }
     glfwTerminate();
     glfwDestroyWindow(pWindow_);
@@ -122,16 +122,15 @@ void Renderer::cleanup(const Scene &scene)
 }
 
 
-void Renderer::draw_game_object(const GameObject &obj, const Camera& cam)
+void Renderer::draw_game_object(GameObject &obj, const Camera& cam)
 {
 
-    obj.mesh.some_shader.use();
+    obj.shader.use();
     glm::mat4 model = Camera::get_model_matrix(obj);
     glm::mat4 view = cam.get_view_matrix();
     glm::mat4 projection = cam.get_projection_matrix();
-    obj.mesh.some_shader.set_mat4("model", model);
-    obj.mesh.some_shader.set_mat4("view", view);
-    obj.mesh.some_shader.set_mat4("projection", projection);
-    glBindVertexArray(obj.mesh.VAO);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
+    obj.shader.set_mat4("model", model);
+    obj.shader.set_mat4("view", view);
+    obj.shader.set_mat4("projection", projection);
+    obj.model.draw(obj.shader);
 }

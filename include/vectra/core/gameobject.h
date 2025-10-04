@@ -6,6 +6,7 @@
 #define VECTRA_GAMEOBJECT_H
 
 #include "vectra/rendering/mesh.h"
+#include "vectra/rendering/model.h"
 #include "vectra/physics/rigidbody.h"
 #include "vectra/physics/transform.h"
 
@@ -13,7 +14,8 @@ class GameObject
 {
     public:
         Rigidbody rb;
-        Mesh mesh;
+        Model model;
+        Shader shader;
 
     GameObject();
 };

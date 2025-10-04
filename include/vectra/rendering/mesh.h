@@ -5,23 +5,28 @@
 #ifndef VECTRA_MESH_H
 #define VECTRA_MESH_H
 
+#include <vector>
+
 #include "vectra/rendering/shader.h"
+#include "vectra/rendering/texture.h"
+#include "vectra/rendering/vertex.h"
 
 
-class Mesh
-{
+class Mesh {
     public:
-        unsigned int VBO;
+        // mesh data
+        std::vector<Vertex> vertices;
+        std::vector<unsigned int> indices;
+        std::vector<Texture> textures;
         unsigned int VAO;
-        unsigned int EBO;
 
-        // Temporary shader for testing purposes will be split into material and transform shader?
-        Shader some_shader;
+        Mesh(std::vector<Vertex> c_vertices, std::vector<unsigned int> c_indices, std::vector<Texture> c_textures);
+        void draw(Shader &shader);
+    private:
+        //  render data
+        unsigned int VBO, EBO;
 
-        Mesh();
-        void load_vertex_data();
-
+        void setup_mesh();
 };
-
 
 #endif //VECTRA_MESH_H
