@@ -5,17 +5,19 @@
 #ifndef VECTRA_TRANSFORM_H
 #define VECTRA_TRANSFORM_H
 #include <linkit/vector3.h>
+#include "linkit/quaternion.h"
 
 class Transform
 {
     public:
         linkit::Vector3 position;
-        linkit::Vector3 rotation;
+        linkit::Quaternion rotation;
         linkit::Vector3 scale;
 
 
         Transform();
-        Transform(linkit::Vector3 init_position, linkit::Vector3 init_rotation, linkit::Vector3 init_scale);
+        linkit::Vector3 forward();
+        Transform(const linkit::Vector3& init_position, const linkit::Quaternion& init_rotation, const linkit::Vector3& init_scale);
 
         void translate(const linkit::Vector3& delta);
 };

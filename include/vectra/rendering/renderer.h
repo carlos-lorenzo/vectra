@@ -12,11 +12,11 @@ class Renderer
         GLFWwindow *pWindow_;
         float simulation_frequency_ = 60.0f; // Physics update frequency in Hz
         float target_fps_ = 144.0f; // Target frames per second for rendering
-        void draw_frame(const Scene &scene);
+        void draw_frame(Scene &scene, const glm::mat4 &projection_matrix);
     public:
         Renderer(int width, int height);
         void play_scene(Scene &scene);
         void cleanup(const Scene& scene);
-        static void draw_game_object(GameObject& obj, const Camera& cam);
+        static void draw_game_object(GameObject& obj, glm::mat4 model_matrix, glm::mat4 view_matrix, glm::mat4 projection_matrix);
 };
 #endif //VECTRA_RENDERER_H

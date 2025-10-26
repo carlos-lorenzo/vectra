@@ -14,10 +14,19 @@ class Rigidbody
         Transform transform;
         linkit::Vector3 velocity;
         linkit::Vector3 acceleration;
-        linkit::real mass;
-        Rigidbody();
-        void step(linkit::real dt);
 
+        linkit::Vector3 angular_velocity;
+        linkit::Vector3 angular_acceleration;
+
+        linkit::real mass;
+        linkit::real inverse_mass;
+
+        linkit::real linear_damping;
+
+        Rigidbody();
+        void step_rotation(linkit::real dt);
+        void step_position(linkit::real dt);
+        void step(linkit::real dt);
 
 };
 

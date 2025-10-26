@@ -11,14 +11,16 @@ class Camera
 {
     public:
         Transform transform;
+        linkit::Quaternion up_direction;
+        linkit::Quaternion right_direction;
         linkit::real fov;
         linkit::real aspectRatio;
         linkit::real nearPlane;
         linkit::real farPlane;
+        linkit::real movement_speed;
 
         Camera();
-        void transform_object(GameObject &obj);
-        [[nodiscard]] glm::mat4 get_view_matrix() const;
+        [[nodiscard]] glm::mat4 get_view_matrix();
         [[nodiscard]] glm::mat4 get_projection_matrix() const;
         static glm::mat4 get_model_matrix(const GameObject &obj);
 };
