@@ -27,7 +27,15 @@ Transform::Transform()
 
 linkit::Vector3 Transform::forward()
 {
-    return -1 * rotation.axis();
+    // Local forward is \-Z
+    return rotation.rotate(linkit::Vector3(0, 0, -1));
 }
 
+
+linkit::Vector3 Transform::up_dir() const {
+    return rotation.rotate(linkit::Vector3(0.0f, 1.0f, 0.0f));
+}
+linkit::Vector3 Transform::right_dir() const {
+    return rotation.rotate(linkit::Vector3(1.0f, 0.0f, 0.0f));
+}
 

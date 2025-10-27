@@ -15,7 +15,7 @@ Rigidbody::Rigidbody()
     velocity = linkit::Vector3(0.0, 0.0f, 0.0f);
     acceleration = linkit::Vector3(0.0f, 0.0f, 0.0f);
 
-    angular_velocity = linkit::Vector3(0.0f, 0.0f, linkit::PI/4);
+    angular_velocity = linkit::Vector3(0.0f, 0.0f, 0);
     angular_acceleration = linkit::Vector3(0.0f, 0.0f, 0.0f);
 
     mass = 1.0f;

@@ -17,6 +17,8 @@ class Transform
 
         Transform();
         linkit::Vector3 forward();
+        linkit::Vector3 up_dir() const;
+        linkit::Vector3 right_dir() const;
         Transform(const linkit::Vector3& init_position, const linkit::Quaternion& init_rotation, const linkit::Vector3& init_scale);
 
         void translate(const linkit::Vector3& delta);

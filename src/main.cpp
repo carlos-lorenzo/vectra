@@ -14,9 +14,11 @@ int main()
     Renderer scene_renderer(2560/2, 1440);
     Scene scene;
     GameObject sun;
-
-
+    GameObject sun_2;
+    sun_2.rb.transform.position = linkit::Vector3(15, 0, 0);
     scene.add_game_object(sun);
+    scene.add_game_object(sun_2);
+
 
     scene_renderer.play_scene(scene);
 

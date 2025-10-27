@@ -11,13 +11,16 @@ class Camera
 {
     public:
         Transform transform;
-        linkit::Quaternion up_direction;
-        linkit::Quaternion right_direction;
+
+
         linkit::real fov;
         linkit::real aspectRatio;
         linkit::real nearPlane;
         linkit::real farPlane;
+
         linkit::real movement_speed;
+        linkit::real mouse_sensitivity;
+        linkit::real max_pitch;
 
         Camera();
         [[nodiscard]] glm::mat4 get_view_matrix();

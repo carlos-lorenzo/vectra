@@ -11,15 +11,18 @@
 Camera::Camera()
 {
     transform = Transform();
+
     transform.rotation = linkit::Quaternion(0, linkit::Vector3(0, 0, 1));
-    up_direction = linkit::Quaternion(linkit::PI, linkit::Vector3(0, 1, 0));
-    right_direction = linkit::Quaternion(linkit::PI, linkit::Vector3(1, 0, 0));
+
     transform.position = linkit::Vector3(0.0f, 0.01f, 10.0f);
     fov = 90.0f;
     aspectRatio = 4.0f / 3.0f;
     nearPlane = 0.01f;
     farPlane = 100.0f;
-    movement_speed = 0.1;
+
+    movement_speed = 1;
+    mouse_sensitivity = 0.003;
+    max_pitch = linkit::PI * 0.5 - 0.001;
 
 }
 
@@ -28,7 +31,7 @@ glm::mat4 Camera::get_view_matrix()
     glm::vec3 pos = glm::vec3(transform.position.x, transform.position.y, transform.position.z);
 
     glm::vec3 target = pos + vector3_to_vec3(transform.forward()); // replace with transform.forward();
-    glm::vec3 up = vector3_to_vec3(up_direction.axis());
+    glm::vec3 up = vector3_to_vec3(transform.up_dir());
     return glm::lookAt(pos, target, up);
 }
 
@@ -60,4 +63,5 @@ glm::mat4 Camera::get_model_matrix(const GameObject &obj)
     model = glm::scale(model, glm::vec3(obj_transform.scale.x, obj_transform.scale.y, obj_transform.scale.z));
     return model;
 }
+
 
