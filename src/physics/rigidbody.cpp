@@ -15,7 +15,7 @@ Rigidbody::Rigidbody()
     velocity = linkit::Vector3(0.0, 0.0f, 0.0f);
     acceleration = linkit::Vector3(0.0f, 0.0f, 0.0f);
 
-    angular_velocity = linkit::Vector3(0.0f, 0.0f, 0);
+    angular_velocity = linkit::Vector3(0.0f, 0.0f, 1.0f);
     angular_acceleration = linkit::Vector3(0.0f, 0.0f, 0.0f);
 
     mass = 1.0f;
@@ -35,7 +35,6 @@ void Rigidbody::step_position(const linkit::real dt)
 {
     velocity += acceleration * dt;
     transform.position += velocity * dt;
-
 }
 
 void Rigidbody::step(const linkit::real dt)

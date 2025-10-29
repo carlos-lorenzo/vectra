@@ -16,7 +16,7 @@ Camera::Camera()
 
     transform.position = linkit::Vector3(0.0f, 0.01f, 10.0f);
     fov = 90.0f;
-    aspectRatio = 4.0f / 3.0f;
+    aspectRatio = 16.0f / 9.0f;
     nearPlane = 0.01f;
     farPlane = 100.0f;
 
@@ -30,7 +30,7 @@ glm::mat4 Camera::get_view_matrix()
 {
     glm::vec3 pos = glm::vec3(transform.position.x, transform.position.y, transform.position.z);
 
-    glm::vec3 target = pos + vector3_to_vec3(transform.forward()); // replace with transform.forward();
+    glm::vec3 target = pos + vector3_to_vec3(transform.forward());
     glm::vec3 up = vector3_to_vec3(transform.up_dir());
     return glm::lookAt(pos, target, up);
 }

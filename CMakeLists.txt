@@ -34,6 +34,8 @@ set(SOURCES
         src/core/scene.cpp
         src/rendering/camera.cpp
         src/rendering/model.cpp
+        src/rendering/light_source.cpp
+        src/physics/force.cpp
 )
 
 # Add GLAD (assuming you'll download it manually)
@@ -77,7 +79,7 @@ add_subdirectory(src/core)
 set(RESOURCES_DIR "${CMAKE_BINARY_DIR}/resources")
 target_compile_definitions(${PROJECT_NAME} PRIVATE "RESOURCES_PATH=\"${RESOURCES_DIR}\"")
 
-target_compile_definitions(rendering PRIVATE "RESOURCES_PATH=\"${RESOURCES_DIR}\"")
+# target_compile_definitions(rendering PRIVATE "RESOURCES_PATH=\"${RESOURCES_DIR}\"")
 
 # Link libraries
 target_link_libraries(${PROJECT_NAME}
@@ -90,8 +92,6 @@ target_link_libraries(${PROJECT_NAME}
         PRIVATE physics
         PRIVATE core
         PRIVATE assimp::assimp
-
-
 )
 
 
@@ -99,4 +99,5 @@ target_link_libraries(${PROJECT_NAME}
 target_include_directories(${PROJECT_NAME}
         PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include"
         PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/external"
+        PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/resources"
 )

@@ -18,6 +18,9 @@ class Rigidbody
         linkit::Vector3 angular_velocity;
         linkit::Vector3 angular_acceleration;
 
+        linkit::Vector3 accumulated_force;
+        linkit::Vector3 accumulated_torque;
+
         linkit::real mass;
         linkit::real inverse_mass;
 

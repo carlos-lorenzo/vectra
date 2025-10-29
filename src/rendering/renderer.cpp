@@ -9,6 +9,14 @@
 #include <stb/stb_image.h>
 
 #include "vectra/rendering/renderer.h"
+
+#include "camera.h"
+#include "camera.h"
+#include "camera.h"
+#include "camera.h"
+#include "camera.h"
+#include "camera.h"
+#include "utils.h"
 #include "vectra/core/scene.h"
 
 void framebuffer_size_callback(GLFWwindow* window, const int width, const int height)
@@ -111,7 +119,7 @@ void Renderer::draw_frame(Scene &scene, const glm::mat4 &projection_matrix, doub
     glm::mat4 view_matrix = scene.camera.get_view_matrix();
     for (auto obj : scene.game_objects) {
         glm::mat4 model_matrix = Camera::get_model_matrix(obj);
-        draw_game_object(obj, model_matrix, view_matrix, projection_matrix);
+        draw_game_object(obj, model_matrix, view_matrix, projection_matrix, scene);
     }
 
     glfwSwapBuffers(pWindow_);
@@ -175,12 +183,29 @@ void Renderer::cleanup(const Scene &scene)
 }
 
 
-void Renderer::draw_game_object(GameObject& obj, glm::mat4 model_matrix, glm::mat4 view_matrix, glm::mat4 projection_matrix)
+void Renderer::draw_game_object(GameObject& obj, glm::mat4 model_matrix, glm::mat4 view_matrix, glm::mat4 projection_matrix, Scene& scene)
 {
 
     obj.shader.use();
     obj.shader.set_mat4("model", model_matrix);
     obj.shader.set_mat4("view", view_matrix);
     obj.shader.set_mat4("projection", projection_matrix);
+    glm::vec3 camera_position = vector3_to_vec3(scene.camera.transform.position);
+
+    obj.shader.set_vec3("camera_position", camera_position);
+
+    if (scene.light_sources.size() > 0)
+    {
+        obj.shader.set_vec3("light_position", scene.light_sources[0].position);
+        obj.shader.set_vec3("light_colour", scene.light_sources[0].colour);
+    } else
+    {
+        glm::vec3 light_position = glm::vec3(0.0f);
+        glm::vec3 light_colour = glm::vec3(1.0f);
+        obj.shader.set_vec3("light_position", light_position);
+
+        obj.shader.set_vec3("light_position", light_position);
+        obj.shader.set_vec3("light_colour", light_colour);
+    }
     obj.model.draw(obj.shader);
 }

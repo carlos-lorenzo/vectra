@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "vectra/rendering/camera.h"
+#include "vectra/rendering/light_source.h"
 #include "vectra/core/gameobject.h"
 
 class Scene
@@ -13,8 +14,12 @@ class Scene
         Camera camera;
         Scene();
         std::vector<GameObject> game_objects;
-        void add_game_object(const GameObject& obj);
-        void step(linkit::real dt);
+        std::vector<LightSource> light_sources;
+
+    void add_game_object(const GameObject& obj);
+    void add_light_source(const LightSource& obj);
+
+    void step(linkit::real dt);
 
 };
 #endif //VECTRA_SCENE_H

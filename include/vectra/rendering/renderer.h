@@ -17,6 +17,6 @@ class Renderer
         Renderer(int width, int height);
         void play_scene(Scene &scene);
         void cleanup(const Scene& scene);
-        static void draw_game_object(GameObject& obj, glm::mat4 model_matrix, glm::mat4 view_matrix, glm::mat4 projection_matrix);
+        static void draw_game_object(::GameObject& obj, glm::mat4 model_matrix, glm::mat4 view_matrix, glm::mat4 projection_matrix, Scene& scene);
 };
 #endif //VECTRA_RENDERER_H

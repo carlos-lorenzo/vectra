@@ -80,6 +80,7 @@ Mesh Model::process_mesh(aiMesh *mesh, const aiScene *scene)
             // normals
             if (mesh->HasNormals())
             {
+
                 vector.x = mesh->mNormals[i].x;
                 vector.y = mesh->mNormals[i].y;
                 vector.z = mesh->mNormals[i].z;
