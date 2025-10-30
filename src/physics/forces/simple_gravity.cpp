@@ -10,7 +10,7 @@ SimpleGravity::SimpleGravity(const linkit::real acceleration)
 
 SimpleGravity::SimpleGravity(const linkit::Vector3& field) : gravitational_field(field) {};
 
-void SimpleGravity::update_force(GameObject& obj, const std::vector<GameObject>& all_objects, linkit::real dt)
+void SimpleGravity::update_force(GameObject& obj, linkit::real dt)
 {
     obj.rb.accumulated_force += obj.rb.mass * gravitational_field;
 }

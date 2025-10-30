@@ -14,6 +14,7 @@ Scene::Scene()
     light_sources = std::vector<LightSource>();
     camera = Camera();
     force_registry = ForceRegistry();
+    skybox = Skybox();
 }
 
 void Scene::add_game_object(const GameObject& obj)
@@ -34,7 +35,7 @@ void Scene::step(const linkit::real dt)
     {
         obj.rb.initialize();
     }
-    force_registry.update_forces(game_objects, dt);
+    force_registry.update_forces(dt);
 
 
     for (auto& obj : game_objects)

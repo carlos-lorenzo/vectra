@@ -37,14 +37,17 @@ static void process_input(GLFWwindow* window, Camera& camera, const double dt)
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) movement_direction += linkit::Vector3(0.0f, 0.0f, -1.0f);
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) movement_direction += linkit::Vector3(-1.0f, 0.0f, 0.0f);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) movement_direction += linkit::Vector3( 1.0f, 0.0f, 0.0f);
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) movement_direction += linkit::Vector3( 0.0f, 1.0f, 0.0f);
+    if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) movement_direction += linkit::Vector3( 0.0f, -1.0f, 0.0f);
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) speed_multiplier = 3;
 
     if (movement_direction * movement_direction > 0.0f) movement_direction.normalize();
 
     const linkit::Vector3 forward = camera.transform.forward();
     const linkit::Vector3 right = camera.transform.right_dir();
+    const linkit::Vector3 up = camera.transform.up_dir();
     const linkit::real speed = speed_multiplier * camera.movement_speed * static_cast<linkit::real>(dt);
-    camera.transform.position += speed * (forward * movement_direction.z + right * movement_direction.x);
+    camera.transform.position += speed * (forward * movement_direction.z + right * movement_direction.x + up * movement_direction.y);
 
     // Mouse look
     static bool first = true;
@@ -117,11 +120,14 @@ void Renderer::draw_frame(Scene &scene, const glm::mat4 &projection_matrix, doub
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glm::mat4 view_matrix = scene.camera.get_view_matrix();
+
+
     for (auto obj : scene.game_objects) {
         glm::mat4 model_matrix = Camera::get_model_matrix(obj);
         draw_game_object(obj, model_matrix, view_matrix, projection_matrix, scene);
     }
 
+    scene.skybox.draw(view_matrix, projection_matrix);
     glfwSwapBuffers(pWindow_);
     glfwPollEvents();
 }
@@ -138,6 +144,10 @@ void Renderer::play_scene(Scene &scene)
 
     const double min_frame_time = 1.0 / target_fps_;
     glm::mat4 projection_matrix = scene.camera.get_projection_matrix();
+
+    // No idea why this is needed
+    scene.skybox.skybox_shader.use();
+    scene.skybox.skybox_shader.set_int("skybox", 0);
 
     while (!glfwWindowShouldClose(pWindow_)) {
         double new_time = glfwGetTime();
@@ -194,7 +204,7 @@ void Renderer::draw_game_object(GameObject& obj, glm::mat4 model_matrix, glm::ma
 
     obj.shader.set_vec3("camera_position", camera_position);
 
-    if (scene.light_sources.size() > 0)
+    if (!scene.light_sources.empty())
     {
         obj.shader.set_vec3("light_position", scene.light_sources[0].position);
         obj.shader.set_vec3("light_colour", scene.light_sources[0].colour);

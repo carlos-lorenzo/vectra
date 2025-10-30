@@ -21,7 +21,7 @@ public:
     void add(GameObject* obj, std::shared_ptr<ForceGenerator> force_generator);
     void remove(GameObject* obj, std::shared_ptr<ForceGenerator> force_generator);
     void clear();
-    void update_forces(const std::vector<GameObject>& all_objects, linkit::real dt);
+    void update_forces(linkit::real dt);
 };
 
 #endif //VECTRA_FORCE_REGISTRY_H

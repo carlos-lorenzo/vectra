@@ -6,6 +6,7 @@
 
 #include "vectra/rendering/camera.h"
 #include "vectra/rendering/light_source.h"
+#include "vectra/rendering/skybox.h"
 #include "vectra/core/gameobject.h"
 #include "vectra/physics/force_registry.h"
 
@@ -16,6 +17,7 @@ class Scene
         std::vector<GameObject> game_objects;
         std::vector<LightSource> light_sources;
         Camera camera;
+        Skybox skybox;
         ForceRegistry force_registry;
 
 

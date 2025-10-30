@@ -12,7 +12,7 @@ class SimpleGravity : public ForceGenerator
 public:
     explicit SimpleGravity(linkit::real acceleration = -9.81);
     explicit SimpleGravity(const linkit::Vector3& field = linkit::Vector3(0, -9.81, 0));
-    void update_force(GameObject& obj, const std::vector<GameObject>& all_objects, linkit::real dt) override;
+    void update_force(GameObject& obj, linkit::real dt) override;
 };
 
 #endif //VECTRA_SIMPLE_GRAVITY_H

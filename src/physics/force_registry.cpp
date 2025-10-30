@@ -22,10 +22,10 @@ void ForceRegistry::clear()
     registered_forces.clear();
 }
 
-void ForceRegistry::update_forces(const std::vector<GameObject>& all_objects, linkit::real dt)
+void ForceRegistry::update_forces(linkit::real dt)
 {
     for (auto& reg : registered_forces)
     {
-        reg.force_generator->update_force(*reg.obj, all_objects, dt);
+        reg.force_generator->update_force(*reg.obj, dt);
     }
 }
