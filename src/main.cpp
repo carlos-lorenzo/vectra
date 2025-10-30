@@ -45,6 +45,7 @@ int main()
     // {
     //     scene.force_registry.add(&obj, std::make_shared<NewtonianGravity>(scene.game_objects, 50));
     // }
+
     linkit::Vector3 anchor = linkit::Vector3(0.0, 5.0, 0.0);
 
     scene.force_registry.add(&scene.game_objects[0], std::make_shared<AnchoredSpring>(anchor, 10.0, 5.0, 1.0));
