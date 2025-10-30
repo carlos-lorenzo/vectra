@@ -35,7 +35,9 @@ set(SOURCES
         src/rendering/camera.cpp
         src/rendering/model.cpp
         src/rendering/light_source.cpp
-        src/physics/force.cpp
+        src/physics/force_registry.cpp
+        src/physics/forces/simple_gravity.cpp
+        src/physics/forces/newtonian_gravity.cpp
 )
 
 # Add GLAD (assuming you'll download it manually)

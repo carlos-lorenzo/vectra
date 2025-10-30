@@ -1,13 +1,19 @@
 #include <vector>
 #include "vectra/core/scene.h"
+
+#include <iostream>
+#include <ostream>
+
 #include "vectra/rendering/light_source.h"
 #include "vectra/rendering/camera.h"
+
 
 Scene::Scene()
 {
     game_objects = std::vector<GameObject>();
     light_sources = std::vector<LightSource>();
     camera = Camera();
+    force_registry = ForceRegistry();
 }
 
 void Scene::add_game_object(const GameObject& obj)
@@ -21,8 +27,16 @@ void Scene::add_light_source(const LightSource& obj)
 }
 
 
+
 void Scene::step(const linkit::real dt)
 {
+    for (auto& obj : game_objects)
+    {
+        obj.rb.initialize();
+    }
+    force_registry.update_forces(game_objects, dt);
+
+
     for (auto& obj : game_objects)
     {
         obj.rb.step(dt);

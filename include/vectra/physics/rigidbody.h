@@ -27,9 +27,12 @@ class Rigidbody
         linkit::real linear_damping;
 
         Rigidbody();
+        void initialize();
+        void compute_accelerations();
         void step_rotation(linkit::real dt);
         void step_position(linkit::real dt);
         void step(linkit::real dt);
+        [[nodiscard]] bool has_finite_mass() const;
 
 };
 

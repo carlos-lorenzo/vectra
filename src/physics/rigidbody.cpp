@@ -12,17 +12,36 @@ Rigidbody::Rigidbody()
 {
     transform = Transform();
 
-    velocity = linkit::Vector3(0.0, 0.0f, 0.0f);
+    velocity = linkit::Vector3(0.0, 0.0, 0.0);
     acceleration = linkit::Vector3(0.0f, 0.0f, 0.0f);
 
-    angular_velocity = linkit::Vector3(0.0f, 0.0f, 1.0f);
+    angular_velocity = linkit::Vector3(0.0f, 0.0f, 0.0f);
     angular_acceleration = linkit::Vector3(0.0f, 0.0f, 0.0f);
+
+    accumulated_force = linkit::Vector3(0.0f, 0.0f, 0.0f);
+    accumulated_torque = linkit::Vector3(0.0f, 0.0f, 0.0f);
 
     mass = 1.0f;
     inverse_mass = (mass > 0.0f) ? (1.0f / mass) : 0.0f; // Handle infinite mass case
 
     linear_damping = 1.0f;
 }
+
+void Rigidbody::initialize()
+{
+    acceleration = linkit::Vector3(0.0f, 0.0f, 0.0f);
+    angular_acceleration = linkit::Vector3(0.0f, 0.0f, 0.0f);
+
+    accumulated_force = linkit::Vector3(0.0f, 0.0f, 0.0f);
+    accumulated_torque = linkit::Vector3(0.0f, 0.0f, 0.0f);
+}
+
+void Rigidbody::compute_accelerations()
+{
+    acceleration = accumulated_force * inverse_mass;
+    angular_acceleration = accumulated_torque * inverse_mass;
+}
+
 
 void Rigidbody::step_rotation(const linkit::real dt)
 {
@@ -34,6 +53,7 @@ void Rigidbody::step_rotation(const linkit::real dt)
 void Rigidbody::step_position(const linkit::real dt)
 {
     velocity += acceleration * dt;
+    //velocity *= linkit::real_pow(linear_damping, dt);
     transform.position += velocity * dt;
 }
 
@@ -41,8 +61,14 @@ void Rigidbody::step(const linkit::real dt)
 {
     if (mass <= 0.0f) return; // Object is immovable
 
+    compute_accelerations();
     step_position(dt);
     step_rotation(dt);
+}
+
+bool Rigidbody::has_finite_mass() const
+{
+    return inverse_mass != 0;
 }
 
 
