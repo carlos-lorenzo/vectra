@@ -44,7 +44,6 @@ int main()
         scene.force_registry.add(&obj, std::make_shared<NewtonianGravity>(50));
     }
 
-    //scene.force_registry.add(&scene.game_objects[1], std::make_shared<NewtonianGravity>(1));
 
     scene_renderer.play_scene(scene);
     return 0;
