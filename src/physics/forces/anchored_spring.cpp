@@ -21,7 +21,5 @@ void AnchoredSpring::update_force(GameObject& obj, linkit::real dt)
     force.normalize();
     force *= magnitude;
 
-    // Incorrect implementation on purpose to test torque application
-    linkit::Vector3 local_point = linkit::Vector3(1, 1, 1);
-    obj.rb.add_force_at_local_point(force, local_point);
+    obj.rb.add_force(force);
 }
