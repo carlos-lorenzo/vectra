@@ -23,13 +23,13 @@ int main()
 
 
     GameObject particle_1;
-    particle_1.rb.transform.position = linkit::Vector3(5, 0, 0);
-    particle_1.rb.velocity = linkit::Vector3(1, 0, 0);
+    particle_1.rb.transform.position = linkit::Vector3(0, 0, 0);
+    particle_1.rb.velocity = linkit::Vector3(0, 0, 0);
     scene.add_game_object(particle_1);
 
     GameObject particle_2;
     particle_2.rb.transform.position = linkit::Vector3(0, 5, 0);
-    particle_2.rb.transform.scale = linkit::Vector3(1, 1, 1) * 0.5;
+    particle_2.rb.transform.scale = linkit::Vector3(1, 2, 1) * 0.1;
     particle_2.rb.velocity = linkit::Vector3(0, 0, 0);
 
     scene.add_game_object(particle_2);
@@ -48,7 +48,8 @@ int main()
 
     linkit::Vector3 anchor = linkit::Vector3(0.0, 5.0, 0.0);
 
-    scene.force_registry.add(&scene.game_objects[0], std::make_shared<AnchoredSpring>(anchor, 10.0, 5.0, 1.0));
+
+    scene.force_registry.add(&scene.game_objects[0], std::make_shared<AnchoredSpring>(anchor, 10.0, 3.0, 1.0));
     scene_renderer.play_scene(scene);
     return 0;
 }

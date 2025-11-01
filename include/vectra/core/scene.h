@@ -21,7 +21,7 @@ class Scene
         ForceRegistry force_registry;
 
 
-    void add_game_object(const GameObject& obj);
+    void add_game_object(GameObject& obj);
     void add_light_source(const LightSource& obj);
     void step(linkit::real dt);
 

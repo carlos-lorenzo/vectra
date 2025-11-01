@@ -17,8 +17,9 @@ Scene::Scene()
     skybox = Skybox();
 }
 
-void Scene::add_game_object(const GameObject& obj)
+void Scene::add_game_object(GameObject& obj)
 {
+    obj.rb.set_inverse_inertia_tensor(obj.rb.cuboid_inertia_tensor());
     game_objects.push_back(obj);
 }
 
@@ -33,7 +34,7 @@ void Scene::step(const linkit::real dt)
 {
     for (auto& obj : game_objects)
     {
-        obj.rb.initialize();
+        obj.rb.clear_accumulators();
     }
     force_registry.update_forces(dt);
 

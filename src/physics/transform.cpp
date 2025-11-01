@@ -25,7 +25,7 @@ Transform::Transform()
 }
 
 
-linkit::Vector3 Transform::forward()
+linkit::Vector3 Transform::forward() const
 {
     // Local forward is \-Z
     return rotation.rotate(linkit::Vector3(0, 0, -1));
