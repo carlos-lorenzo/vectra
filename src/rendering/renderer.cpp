@@ -110,6 +110,8 @@ Renderer::Renderer(const int width, const int height)
     glfwSetInputMode(pWindow_, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     if (glfwRawMouseMotionSupported())
         glfwSetInputMode(pWindow_, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
+
+    debug_drawer_ = std::make_unique<DebugDrawer>();
 }
 
 void Renderer::draw_frame(Scene &scene, const glm::mat4 &projection_matrix, double dt)
@@ -125,6 +127,10 @@ void Renderer::draw_frame(Scene &scene, const glm::mat4 &projection_matrix, doub
     for (auto obj : scene.game_objects) {
         glm::mat4 model_matrix = Camera::get_model_matrix(obj);
         draw_game_object(obj, model_matrix, view_matrix, projection_matrix, scene);
+    }
+
+    if (scene.bvh_root) {
+        debug_drawer_->draw_bvh(scene.bvh_root.get(), view_matrix, projection_matrix);
     }
 
     scene.skybox.draw(view_matrix, projection_matrix);

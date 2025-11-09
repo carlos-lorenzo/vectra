@@ -31,8 +31,18 @@ int main()
     particle_2.rb.transform.position = linkit::Vector3(0, 5, 0);
     particle_2.rb.transform.scale = linkit::Vector3(1, 2, 1) * 0.1;
     particle_2.rb.velocity = linkit::Vector3(0, 0, 0);
-
     scene.add_game_object(particle_2);
+
+
+    GameObject anchor_point;
+    anchor_point.model = Model("resources/models/primitives/sphere.obj", false);
+
+    anchor_point.rb.transform.position = linkit::Vector3(1, 1, 1);
+    anchor_point.rb.transform.scale = linkit::Vector3(1, 1, 1) * 0.1;
+
+
+
+    scene.add_game_object(anchor_point);
     //
     // GameObject particle_3;
     // particle_3.rb.transform.position = linkit::Vector3(0, 10, 0);
@@ -46,10 +56,10 @@ int main()
     //     scene.force_registry.add(&obj, std::make_shared<NewtonianGravity>(scene.game_objects, 50));
     // }
 
-    linkit::Vector3 anchor = linkit::Vector3(0.0, 5.0, 0.0);
+    linkit::Vector3 anchor = linkit::Vector3(0.0, 1.0, 0.0);
 
 
-    scene.force_registry.add(&scene.game_objects[0], std::make_shared<AnchoredSpring>(anchor, 10.0, 3.0, 1.0));
+    scene.force_registry.add(&scene.game_objects[0], std::make_shared<SimpleGravity>(anchor));
     scene_renderer.play_scene(scene);
     return 0;
 }

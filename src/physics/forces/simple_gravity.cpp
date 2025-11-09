@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <ostream>
+#include <unistd.h>
 
 SimpleGravity::SimpleGravity(const linkit::real acceleration)
 {
@@ -12,5 +13,7 @@ SimpleGravity::SimpleGravity(const linkit::Vector3& field) : gravitational_field
 
 void SimpleGravity::update_force(GameObject& obj, linkit::real dt)
 {
-    obj.rb.accumulated_force += obj.rb.mass * gravitational_field;
+    obj.rb.add_force(gravitational_field);
+
+
 }

@@ -40,6 +40,8 @@ set(SOURCES
         src/physics/forces/newtonian_gravity.cpp
         src/physics/forces/anchored_spring.cpp
         src/rendering/skybox.cpp
+        src/physics/bounding_volumes/bounding_sphere.cpp
+        src/rendering/debug_drawer.cpp
 )
 
 # Add GLAD (assuming you'll download it manually)

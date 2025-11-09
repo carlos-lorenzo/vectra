@@ -20,6 +20,6 @@ void AnchoredSpring::update_force(GameObject& obj, linkit::real dt)
 
     force.normalize();
     force *= magnitude;
-
-    obj.rb.add_force(force);
+    linkit::Vector3 local_point = linkit::Vector3(1.0f, 1.0f, 1.0f);
+    obj.rb.add_force_at_local_point(force, local_point);
 }

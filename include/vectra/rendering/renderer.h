@@ -3,8 +3,8 @@
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-
-#include "../core/scene.h"
+#include "vectra/rendering/debug_drawer.h"
+#include "vectra/core/scene.h"
 
 class Renderer
 {
@@ -12,6 +12,7 @@ class Renderer
         GLFWwindow *pWindow_;
         float simulation_frequency_ = 60.0f; // Physics update frequency in Hz
         float target_fps_ = 144.0f; // Target frames per second for rendering
+        std::unique_ptr<DebugDrawer> debug_drawer_; // Add debug drawer
         void draw_frame(Scene &scene, const glm::mat4 &projection_matrix, double dt);
     public:
         Renderer(int width, int height);

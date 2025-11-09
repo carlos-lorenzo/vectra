@@ -11,6 +11,7 @@
 class Rigidbody
 {
     public:
+        bool has_moved;
         Transform transform;
         linkit::Vector3 velocity;
         linkit::Vector3 acceleration;
@@ -26,6 +27,7 @@ class Rigidbody
         linkit::Matrix3 _local_inverse_inertia_tensor;
 
         linkit::real linear_damping;
+
 
         Rigidbody();
         void clear_accumulators();
@@ -44,6 +46,7 @@ class Rigidbody
         void step_position(linkit::real dt);
         void step(linkit::real dt);
         [[nodiscard]] bool has_finite_mass() const;
+        bool has_infinite_mass() const;
         linkit::Matrix3 cuboid_inertia_tensor() const;
         void set_inverse_inertia_tensor(const linkit::Matrix3& inertia_tensor);
 };

@@ -13,11 +13,6 @@ uniform vec3 light_position;
 
 void main()
 {
-
-    // Will be passed by uniform
-    //vec3 light_colour = vec3(1.0, 1.0, 1.0);
-    //vec3 light_position = vec3(0, 50, 10);
-    //vec3 camera_position = vec3(0, 0, 10);
     float ambient_strenght = 0.5;
     float specular_strength = 0.5;
 

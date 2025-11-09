@@ -28,6 +28,7 @@ Rigidbody::Rigidbody()
     inverse_mass = (mass > 0.0f) ? (1.0f / mass) : 0.0f; // Handle infinite mass case
 
     linear_damping = 1.0f;
+    has_moved = false;
 }
 
 void Rigidbody::clear_accumulators()
@@ -86,8 +87,6 @@ void Rigidbody::compute_accelerations()
 {
     acceleration = accumulated_force * inverse_mass;
     angular_acceleration = get_inverse_inertia_tensor() * accumulated_torque;
-    std::cout << get_inverse_inertia_tensor().to_string() << std::endl;
-
 }
 
 
@@ -103,12 +102,14 @@ void Rigidbody::step_position(const linkit::real dt)
 {
     velocity += acceleration * dt;
     //velocity *= linkit::real_pow(linear_damping, dt);
+    if (velocity*velocity > linkit::REAL_EPSILON) has_moved = true;
+    else has_moved = false;
     transform.position += velocity * dt;
 }
 
 void Rigidbody::step(const linkit::real dt)
 {
-    if (!has_finite_mass()) return; // Object is immovable
+    if (has_infinite_mass()) return; // Object is immovable
 
     compute_accelerations();
     step_position(dt);
@@ -118,6 +119,11 @@ void Rigidbody::step(const linkit::real dt)
 bool Rigidbody::has_finite_mass() const
 {
     return inverse_mass != 0;
+}
+
+bool Rigidbody::has_infinite_mass() const
+{
+    return inverse_mass == 0;
 }
 
 linkit::Matrix3 Rigidbody::cuboid_inertia_tensor() const
