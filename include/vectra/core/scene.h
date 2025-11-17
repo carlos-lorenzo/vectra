@@ -3,6 +3,7 @@
 
 
 #include <vector>
+#include <deque>
 #include <memory>
 #include <unordered_map>
 
@@ -18,7 +19,8 @@ class Scene
 {
     public:
         Scene();
-        std::vector<GameObject> game_objects;
+        void rebuild_bvh_node_map();
+        std::deque<GameObject> game_objects; // stable pointers
         std::vector<LightSource> light_sources;
         Camera camera;
         Skybox skybox;

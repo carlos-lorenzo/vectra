@@ -1,4 +1,6 @@
 #include "vectra/physics/bounding_volumes/bounding_sphere.h"
+#include "vectra/core/gameobject.h"
+
 
 BoundingSphere::BoundingSphere(const linkit::Vector3& center, linkit::real radius) :
 center(center),
@@ -35,6 +37,12 @@ BoundingSphere::BoundingSphere(const BoundingSphere& first, const BoundingSphere
     }
 
 }
+
+void BoundingSphere::update_position(const GameObject& obj)
+{
+    center = obj.rb.transform.position;
+}
+
 
 linkit::real BoundingSphere::expected_growth(const BoundingSphere& other) const
 {

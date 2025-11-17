@@ -41,29 +41,27 @@ public:
         );
     }
 
-    BVHNode* insert(GameObject* new_obj, const BoundingVolumeClass& new_volume)
+    BVHNode<BoundingVolumeClass>* insert(GameObject* new_obj, const BoundingVolumeClass& new_volume)
     {
         if (is_leaf())
         {
-            children[0] = new BVHNode(this, *bounding_volume, object);
-            children[1] = new BVHNode(this, new_volume, new_obj);
+            // Split this leaf into two children
+            children[0] = new BVHNode(this, *bounding_volume, object);      // old object
+            children[1] = new BVHNode(this, new_volume,        new_obj);    // new object
             object = nullptr;
-        }
-        else
-        {
-            if (children[0]->bounding_volume->expected_growth(new_volume) <
-                children[1]->bounding_volume->expected_growth(new_volume))
-            {
-                children[0]->insert(new_obj, new_volume);
-            }
-            else
-            {
-                children[1]->insert(new_obj, new_volume);
-            }
-        }
-        recalculate_bounding_volume();
-        return this;
 
+            recalculate_bounding_volume();
+            return children[1]; // return the newly inserted leaf
+        }
+
+        // Choose child with least growth and recurse
+        BVHNode* chosen = (children[0]->bounding_volume->expected_growth(new_volume) <
+                           children[1]->bounding_volume->expected_growth(new_volume))
+                            ? children[0] : children[1];
+
+        BVHNode* leaf = chosen->insert(new_obj, new_volume);
+        recalculate_bounding_volume();
+        return leaf;
     }
 
     bool overlaps(const BVHNode<BoundingVolumeClass>* other) const
