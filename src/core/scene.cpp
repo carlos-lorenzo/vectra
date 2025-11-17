@@ -16,6 +16,7 @@ Scene::Scene()
     force_registry = ForceRegistry();
     skybox = Skybox();
     bvh_root = nullptr;
+    bvh_node_map = std::unordered_map<GameObject*, BVHNode<BoundingSphere>*>();
 }
 
 void Scene::add_game_object(GameObject& obj)
@@ -29,7 +30,7 @@ void Scene::add_game_object(GameObject& obj)
     if (!bvh_root)
     {
         bvh_root = std::make_unique<BVHNode<BoundingSphere>>(nullptr, new_volume, new_obj_ptr);
-        bvh_node_map[&game_objects.back()] = bvh_root.get();
+        bvh_node_map[new_obj_ptr] = bvh_root.get();
     }
     else
     {
@@ -51,7 +52,7 @@ void Scene::update_bvh()
         auto it = bvh_node_map.find(&obj);
         if (it != bvh_node_map.end())
         {
-
+            std::cout << "updated" << std::endl;
             BVHNode<BoundingSphere>* node = it->second;
             // Update the node's bounding volume position and size if needed
             node->bounding_volume->center = obj.rb.transform.position;
@@ -61,7 +62,7 @@ void Scene::update_bvh()
             // A more advanced approach could be to just refit the bounds upwards
             // and only re-insert if it has moved significantly.
             node->recalc_upwards();
-            std::cout << "Updated BVH node: " + node->bounding_volume->center.to_string() << std::endl;
+            std::cout << node->bounding_volume->center.to_string() << std::endl;
         }
     }
 }
