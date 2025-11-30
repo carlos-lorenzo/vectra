@@ -34,6 +34,11 @@ int main()
     particle_2.rb.velocity = linkit::Vector3(0, 0, 0);
     scene.add_game_object(particle_2);
 
+    GameObject particle_3;
+    particle_3.rb.transform.position = linkit::Vector3(10, 0, 0);
+    particle_3.rb.velocity = linkit::Vector3(0, 0, 0);
+    scene.add_game_object(particle_3);
+
 
 
     linkit::Vector3 anchor = linkit::Vector3(-1.0, 0.0, 0.0);

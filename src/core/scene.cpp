@@ -98,11 +98,10 @@ void Scene::add_light_source(const LightSource& obj)
 void Scene::step(const linkit::real dt)
 {
     update_bvh();
-    int n_contacts = 0;
+
     unsigned int limit = 10;
-    PotentialContact* contacts = nullptr;
-    n_contacts = bvh_root->potential_contacts(contacts, limit);
-    std::cout << "Contacts: " << n_contacts << std::endl;
+    std::vector<PotentialContact> possible_contacts;
+    possible_contacts = bvh_root->potential_contacts_inside(possible_contacts, limit);
 
     for (auto& obj : game_objects)
     {

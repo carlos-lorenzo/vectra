@@ -71,44 +71,69 @@ public:
         return bounding_volume->overlaps(*other->bounding_volume);
     }
 
-    unsigned int potential_contacts(PotentialContact* contacts, unsigned int limit)
-    {
-        if (is_leaf() || limit == 0) return 0;
-        return children[0]->potential_contacts_with(children[1], contacts, limit);
-    }
 
-    unsigned int potential_contacts_with(BVHNode<BoundingVolumeClass>* other,
-                                         PotentialContact* contacts,
-                                         unsigned int limit)
+    std::vector<PotentialContact> potential_contacts_inside(std::vector<PotentialContact> contacts, unsigned int limit)
     {
-        if (limit == 0 || !overlaps(other)) return 0;
+        if (contacts.size() >= limit) return contacts;
+        if (is_leaf()) return contacts;
 
-        if (is_leaf() && other->is_leaf())
+        if (children[0] && children[1] && children[0]->overlaps(children[1]))
         {
-            contacts->objects[0] = object;
-            contacts->objects[1] = other->object;
-            return 1;
+            contacts = children[0]->potential_contacts_with(children[1], contacts, limit);
+            if (contacts.size() >= limit) return contacts;
         }
 
-        unsigned int count = 0;
+        if (children[0])
+        {
+            contacts = children[0]->potential_contacts_inside(contacts, limit);
+            if (contacts.size() >= limit) return contacts;
+        }
+        if (children[1])
+        {
+            contacts = children[1]->potential_contacts_inside(contacts, limit);
+        }
+        return contacts;
+    }
 
+    std::vector<PotentialContact> potential_contacts_with(const BVHNode<BoundingVolumeClass>* other, std::vector<PotentialContact> contacts, unsigned int limit)
+    {
+        if (contacts.size() >= limit) return contacts;
+        if (!other) return contacts;
+        if (!overlaps(other)) return contacts;
+
+        // Both leaves -> record contact
+        if (is_leaf() && other->is_leaf())
+        {
+            contacts.push_back({object, other->object});
+            return contacts;
+        }
+
+        // Decide which subtree to descend
         if (other->is_leaf() || (!is_leaf() && bounding_volume->size() >= other->bounding_volume->size()))
         {
-            count = children[0]->potential_contacts_with(other, contacts, limit);
-            if (count < limit)
+            if (children[0])
             {
-                return count + children[1]->potential_contacts_with(other, contacts + count, limit - count);
+                contacts = children[0]->potential_contacts_with(other, contacts, limit);
+                if (contacts.size() >= limit) return contacts;
             }
-            return count;
+            if (children[1])
+            {
+                contacts = children[1]->potential_contacts_with(other, contacts, limit);
+            }
+            return contacts;
         }
         else
         {
-            count = potential_contacts_with(other->children[0], contacts, limit);
-            if (count < limit)
+            if (other->children[0])
             {
-                return count + potential_contacts_with(other->children[1], contacts + count, limit - count);
+                contacts = potential_contacts_with(other->children[0], contacts, limit);
+                if (contacts.size() >= limit) return contacts;
             }
-            return count;
+            if (other->children[1])
+            {
+                contacts = potential_contacts_with(other->children[1], contacts, limit);
+            }
+            return contacts;
         }
     }
 
@@ -152,7 +177,7 @@ public:
         if (p->children[0]) p->children[0]->parent = p;
         if (p->children[1]) p->children[1]->parent = p;
 
-        // Detach moved children so sibling's destructor won't delete them.
+        // Detach moved children so the sibling's destructor won't delete them.
         sibling->children[0] = nullptr;
         sibling->children[1] = nullptr;
         sibling->object = nullptr;
@@ -160,7 +185,7 @@ public:
         // Keep a starting point for upward recomputation.
         BVHNode* start = p;
 
-        // Detach self from parent and delete both redundant nodes.
+        // Detach self from the parent and delete both redundant nodes.
         parent = nullptr; // defensive
         delete sibling;
         delete this;
