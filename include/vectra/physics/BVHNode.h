@@ -3,6 +3,7 @@
 #define VECTRA_BVHNODE_H
 
 #include <memory>
+#include <vector>
 #include "vectra/core/gameobject.h"
 
 struct PotentialContact
@@ -30,7 +31,7 @@ public:
         delete children[1];
     }
 
-    bool is_leaf() const { return object != nullptr; }
+    [[nodiscard]] bool is_leaf() const { return object != nullptr; }
 
     void recalculate_bounding_volume()
     {
@@ -166,6 +167,7 @@ public:
         // Fix bounding volumes up to the root.
         start->recalc_upwards();
     }
+
 };
 
 #endif // VECTRA_BVHNODE_H
