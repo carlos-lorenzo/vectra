@@ -22,6 +22,7 @@ public:
 
     BVHNode() = default;
 
+
     // Leaf constructor
     BVHNode(BVHNode* p, const BoundingVolumeClass& volume, GameObject* obj)
         : parent(p), bounding_volume(std::make_unique<BoundingVolumeClass>(volume)), object(obj) {}
