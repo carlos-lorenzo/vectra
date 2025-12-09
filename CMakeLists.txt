@@ -42,6 +42,13 @@ set(SOURCES
         src/rendering/skybox.cpp
         src/physics/bounding_volumes/bounding_sphere.cpp
         src/rendering/debug_drawer.cpp
+        src/physics/colliders/collider_sphere.cpp
+        src/physics/collision_data.cpp
+        src/physics/collision_contact.cpp
+        src/physics/collision_handler.cpp
+        src/physics/colliders/collider_box.cpp
+        src/physics/collider_primitive.cpp
+
 )
 
 # Add GLAD (assuming you'll download it manually)

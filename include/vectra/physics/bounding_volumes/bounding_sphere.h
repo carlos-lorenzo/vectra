@@ -1,13 +1,13 @@
 #ifndef VECTRA_BOUNDING_SPHERE_H
 #define VECTRA_BOUNDING_SPHERE_H
+
 #include "vectra/core/gameobject.h"
 #include "linkit/linkit.h"
-#include "vectra/rendering/model.h"
+
 struct BoundingSphere
 {
     linkit::Vector3 center;
     linkit::real radius;
-
 
 
 public:

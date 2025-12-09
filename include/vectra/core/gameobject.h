@@ -1,14 +1,11 @@
-//
-// Created by carlos on 9/29/25.
-//
-
 #ifndef VECTRA_GAMEOBJECT_H
 #define VECTRA_GAMEOBJECT_H
 
-#include "vectra/rendering/mesh.h"
+#include <memory>
+
 #include "vectra/rendering/model.h"
 #include "vectra/physics/rigidbody.h"
-#include "vectra/physics/transform.h"
+#include "vectra/physics/collider_primitive.h"
 
 class GameObject
 {
@@ -16,7 +13,15 @@ class GameObject
         Rigidbody rb;
         Model model;
         Shader shader;
+        std::unique_ptr<ColliderPrimitive> collider; // nullable, owns ColliderSphere/ColliderBox
 
-    GameObject();
-};
+        GameObject();
+        GameObject(const GameObject& other);
+        GameObject& operator=(const GameObject& other);
+        GameObject(GameObject&&) noexcept = default;
+        GameObject& operator=(GameObject&&) noexcept = default;
+        ColliderPrimitive& get_collider();
+        const ColliderPrimitive& get_collider() const;
+
+    };
 #endif //VECTRA_GAMEOBJECT_H

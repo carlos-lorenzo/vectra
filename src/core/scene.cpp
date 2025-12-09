@@ -20,6 +20,7 @@ Scene::Scene()
     skybox = Skybox();
     bvh_root = nullptr;
     bvh_node_map = std::unordered_map<GameObject*, BVHNode<BoundingSphere>*>();
+    collision_handler = CollisionHandler();
 }
 
 // In Scene class (private):
@@ -43,14 +44,18 @@ void Scene::rebuild_bvh_node_map()
 }
 
 // add_game_object
-void Scene::add_game_object(GameObject& obj)
+void Scene::add_game_object(GameObject obj)
 {
     obj.rb.set_inverse_inertia_tensor(obj.rb.cuboid_inertia_tensor());
-    game_objects.push_back(obj);
+
+    // Compute bounding info before moving the object
+    linkit::real radius = obj.rb.transform.scale.magnitude();
+    auto position = obj.rb.transform.position;
+
+    game_objects.push_back(std::move(obj));
 
     GameObject* new_obj_ptr = &game_objects.back();
-    linkit::real radius = obj.rb.transform.scale.magnitude();
-    BoundingSphere new_volume(obj.rb.transform.position, radius);
+    BoundingSphere new_volume(position, radius);
 
     BVHNode<BoundingSphere>* leaf = nullptr;
     if (!bvh_root)
@@ -100,8 +105,11 @@ void Scene::step(const linkit::real dt)
     update_bvh();
 
     unsigned int limit = 10;
-    std::vector<PotentialContact> possible_contacts;
+    std::vector<PotentialContact> possible_contacts; // defined within collision handler perhaps
     possible_contacts = bvh_root->potential_contacts_inside(possible_contacts, limit);
+    std::cout << "Potential contacts: " << possible_contacts.size() << std::endl;
+    collision_handler.narrow_phase(possible_contacts);
+    std::cout << "Actual collisions: " << collision_handler.collisions.size() << std::endl;
 
     for (auto& obj : game_objects)
     {
@@ -114,4 +122,6 @@ void Scene::step(const linkit::real dt)
     {
         obj.rb.step(dt);
     }
+
+    collision_handler.clear_contacts();
 }

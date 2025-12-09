@@ -110,7 +110,7 @@ unsigned int Skybox::load_cubemap()
 void Skybox::draw(const glm::mat4& view, const glm::mat4& projection)
 {
     // draw skybox as last
-    glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
+    glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to the depth buffer's content
     skybox_shader.use();
 
     // remove translation from the view matrix

@@ -1,8 +1,3 @@
-#include <cmath>
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-#include <iostream>
-
 #include "gameobject.h"
 #include "vectra/rendering/renderer.h"
 #include "vectra/rendering/light_source.h"
@@ -24,18 +19,18 @@ int main()
 
     GameObject particle_1;
 
-    particle_1.rb.transform.position = linkit::Vector3(0, 0, 0);
+    particle_1.rb.transform.position = linkit::Vector3(5, 0, 0);
     //particle_1.rb.angular_acceleration = linkit::Vector3(1, 1, 1);
     particle_1.rb.velocity = linkit::Vector3(0, 0, 0);
     scene.add_game_object(particle_1);
 
     GameObject particle_2;
-    particle_2.rb.transform.position = linkit::Vector3(-10, 0, 0);
+    particle_2.rb.transform.position = linkit::Vector3(-1, 0, 0);
     particle_2.rb.velocity = linkit::Vector3(0, 0, 0);
     scene.add_game_object(particle_2);
 
     GameObject particle_3;
-    particle_3.rb.transform.position = linkit::Vector3(10, 0, 0);
+    particle_3.rb.transform.position = linkit::Vector3(0, 0, 0);
     particle_3.rb.velocity = linkit::Vector3(0, 0, 0);
     scene.add_game_object(particle_3);
 

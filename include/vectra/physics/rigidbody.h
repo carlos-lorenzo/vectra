@@ -38,7 +38,7 @@ class Rigidbody
         linkit::Vector3 world_to_local(const linkit::Vector3& world_point);
         [[nodiscard]] linkit::Matrix3 get_inverse_inertia_tensor() const;
         void add_force(const linkit::Vector3& force);
-        // Will add a torque based on force applied at point in world space
+        // Will add a torque based on force applied at a point in world space
         void add_force_at_world_point(const linkit::Vector3& force, const linkit::Vector3& point);
         void add_force_at_local_point(const linkit::Vector3& force, const linkit::Vector3& point);
         void compute_accelerations();
@@ -46,8 +46,8 @@ class Rigidbody
         void step_position(linkit::real dt);
         void step(linkit::real dt);
         [[nodiscard]] bool has_finite_mass() const;
-        bool has_infinite_mass() const;
-        linkit::Matrix3 cuboid_inertia_tensor() const;
+        [[nodiscard]] bool has_infinite_mass() const;
+        [[nodiscard]] linkit::Matrix3 cuboid_inertia_tensor() const;
         void set_inverse_inertia_tensor(const linkit::Matrix3& inertia_tensor);
 };
 

@@ -14,6 +14,7 @@
 #include "vectra/physics/force_registry.h"
 #include "vectra/physics/BVHNode.h"
 #include "vectra/physics/bounding_volumes/bounding_sphere.h"
+#include "vectra/physics/collision_handler.h"
 
 class Scene
 {
@@ -26,12 +27,13 @@ class Scene
         Skybox skybox;
         ForceRegistry force_registry;
         std::unique_ptr<BVHNode<BoundingSphere>> bvh_root;
+        CollisionHandler collision_handler;
 private:
     std::unordered_map<GameObject*, BVHNode<BoundingSphere>*> bvh_node_map;
 
 
 public:
-    void add_game_object(GameObject& obj);
+    void add_game_object(GameObject obj);
     void add_light_source(const LightSource& obj);
     void step(linkit::real dt);
 
