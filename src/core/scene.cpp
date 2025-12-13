@@ -107,9 +107,9 @@ void Scene::step(const linkit::real dt)
     unsigned int limit = 10;
     std::vector<PotentialContact> possible_contacts; // defined within collision handler perhaps
     possible_contacts = bvh_root->potential_contacts_inside(possible_contacts, limit);
-    std::cout << "Potential contacts: " << possible_contacts.size() << std::endl;
+    //std::cout << "Potential contacts: " << possible_contacts.size() << std::endl;
     collision_handler.narrow_phase(possible_contacts);
-    std::cout << "Actual collisions: " << collision_handler.collisions.size() << std::endl;
+    //std::cout << "Actual collisions: " << collision_handler.collisions.size() << std::endl;
 
     for (auto& obj : game_objects)
     {

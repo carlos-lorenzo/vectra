@@ -4,11 +4,18 @@
 
 #include "vectra/physics/transform.h"
 
+#include <unistd.h>
+
 #include "linkit/quaternion.h"
 
 void Transform::translate(const linkit::Vector3& delta)
 {
     position = position + delta;
+}
+
+linkit::Matrix4 Transform::get_model_matrix() const
+{
+    return  linkit::Matrix4::object_transform_matrix(position, rotation, scale);
 }
 
 Transform::Transform(const linkit::Vector3& init_position, const linkit::Quaternion& init_rotation, const linkit::Vector3& init_scale)

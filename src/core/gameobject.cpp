@@ -4,10 +4,11 @@
 #include "vectra/physics/colliders/collider_sphere.h"
 
 GameObject::GameObject()
-    : model("resources/models/primitives/sphere.obj", false),
-      collider(std::make_unique<ColliderSphere>(Transform(), 1.0))
+    :
+    rb(Rigidbody()),
+    model("resources/models/primitives/sphere.obj", false),
+    collider(std::make_unique<ColliderSphere>(&rb.transform, 1.0))
 {
-    rb = Rigidbody();
     shader = Shader("resources/shaders/model.vert", "resources/shaders/phong.frag");
 }
 

@@ -21,7 +21,7 @@ class GameObject
         GameObject(GameObject&&) noexcept = default;
         GameObject& operator=(GameObject&&) noexcept = default;
         ColliderPrimitive& get_collider();
-        const ColliderPrimitive& get_collider() const;
+        [[nodiscard]] const ColliderPrimitive& get_collider() const;
 
     };
 #endif //VECTRA_GAMEOBJECT_H
