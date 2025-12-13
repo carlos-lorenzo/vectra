@@ -20,10 +20,11 @@ class Transform
         [[nodiscard]] linkit::Vector3 up_dir() const;
         [[nodiscard]] linkit::Vector3 right_dir() const;
         Transform(const linkit::Vector3& init_position, const linkit::Quaternion& init_rotation, const linkit::Vector3& init_scale);
+        [[nodiscard]] linkit::real size() const;
 
         void translate(const linkit::Vector3& delta);
         // Returns the Model Matrix (Translation * Rotation * Scale)
-        linkit::Matrix4 get_model_matrix() const;
+        [[nodiscard]] linkit::Matrix4 get_model_matrix() const;
 };
 
 #endif //VECTRA_TRANSFORM_H

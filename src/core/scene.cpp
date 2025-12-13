@@ -49,12 +49,16 @@ void Scene::add_game_object(GameObject obj)
     obj.rb.set_inverse_inertia_tensor(obj.rb.cuboid_inertia_tensor());
 
     // Compute bounding info before moving the object
-    linkit::real radius = obj.rb.transform.scale.magnitude();
+    linkit::real radius = obj.rb.transform.size();
     auto position = obj.rb.transform.position;
 
     game_objects.push_back(std::move(obj));
 
     GameObject* new_obj_ptr = &game_objects.back();
+
+    // FIX: Update the collider to point to the transform of the object in its new memory location
+    new_obj_ptr->get_collider().set_transform(&new_obj_ptr->rb.transform);
+
     BoundingSphere new_volume(position, radius);
 
     BVHNode<BoundingSphere>* leaf = nullptr;
@@ -109,7 +113,7 @@ void Scene::step(const linkit::real dt)
     possible_contacts = bvh_root->potential_contacts_inside(possible_contacts, limit);
     //std::cout << "Potential contacts: " << possible_contacts.size() << std::endl;
     collision_handler.narrow_phase(possible_contacts);
-    //std::cout << "Actual collisions: " << collision_handler.collisions.size() << std::endl;
+    std::cout << "Actual contacts: " << collision_handler.collisions.size() << std::endl;
 
     for (auto& obj : game_objects)
     {

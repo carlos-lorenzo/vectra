@@ -1,5 +1,5 @@
-#import <memory>
-
+#include <memory>
+#include <iostream>
 #include "vectra/core/gameobject.h"
 #include "vectra/physics/colliders/collider_sphere.h"
 
@@ -31,6 +31,29 @@ GameObject& GameObject::operator=(const GameObject& other)
     shader = other.shader;
     collider = other.collider ? other.collider->clone() : nullptr;
     return *this;
+}
+
+void GameObject::set_collider_type(const std::string& tag)
+{
+    if (tag == "ColliderSphere")
+    {
+        collider = std::make_unique<ColliderSphere>(&rb.transform, rb.transform.size());
+    }
+    else if (tag == "ColliderBox")
+    {
+        // Example: create a box collider with half-sizes of 1.0
+        collider = std::make_unique<ColliderBox>(&rb.transform, rb.transform.scale);
+    }
+    else
+    {
+        std::cerr << "Unknown collider type: " << tag << std::endl;
+    }
+    // Additional collider types can be added here
+}
+
+void GameObject::set_shape(const std::string& shape)
+{
+    model = Model("resources/models/primitives/" + shape + ".obj", false);
 }
 
 ColliderPrimitive& GameObject::get_collider()

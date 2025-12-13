@@ -2,6 +2,7 @@
 #define VECTRA_GAMEOBJECT_H
 
 #include <memory>
+#include <string>
 
 #include "vectra/rendering/model.h"
 #include "vectra/physics/rigidbody.h"
@@ -20,6 +21,9 @@ class GameObject
         GameObject& operator=(const GameObject& other);
         GameObject(GameObject&&) noexcept = default;
         GameObject& operator=(GameObject&&) noexcept = default;
+
+        void set_collider_type(const std::string& tag);
+        void set_shape(const std::string& shape);
         ColliderPrimitive& get_collider();
         [[nodiscard]] const ColliderPrimitive& get_collider() const;
 

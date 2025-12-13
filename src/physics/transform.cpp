@@ -24,6 +24,12 @@ Transform::Transform(const linkit::Vector3& init_position, const linkit::Quatern
     rotation = init_rotation;
     scale = init_scale;
 }
+
+linkit::real Transform::size() const
+{
+    return scale.magnitude();
+}
+
 Transform::Transform()
 {
     position = linkit::Vector3(0.0f, 0.0f, 0.0f);

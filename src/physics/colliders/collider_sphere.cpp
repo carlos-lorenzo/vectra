@@ -1,7 +1,8 @@
+#include <iostream>
 #include "vectra/physics/colliders/collider_sphere.h"
 #include "vectra/physics/collision_handler.h"
 
-ColliderSphere::ColliderSphere(Transform* transform, linkit::real radius)
+ColliderSphere::ColliderSphere(Transform* transform, const linkit::real radius)
     : ColliderPrimitive(transform), radius(radius)
 {
     tag = "ColliderSphere";
@@ -14,7 +15,19 @@ std::unique_ptr<ColliderPrimitive> ColliderSphere::clone() const
 
 void ColliderSphere::collide_with(ColliderPrimitive& other, CollisionHandler& handler)
 {
-    other.collide_with_sphere(*this, handler);
+
+    if (other.tag == "ColliderSphere")
+    {
+        collide_with_sphere(dynamic_cast<ColliderSphere&>(other), handler);
+    }
+    else if (other.tag == "ColliderBox")
+    {
+        collide_with_box(dynamic_cast<ColliderBox&>(other), handler);
+    }
+    else
+    {
+        std::cerr << "Unknown collider type: " << other.tag << std::endl;
+    }
 }
 
 void ColliderSphere::collide_with_sphere(ColliderSphere& sphere, CollisionHandler& handler)

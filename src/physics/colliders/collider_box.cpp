@@ -1,3 +1,4 @@
+#include <iostream>
 #include "vectra/physics/colliders/collider_box.h"
 
 ColliderBox::ColliderBox(Transform* transform, const linkit::Vector3& half_sizes)
@@ -22,7 +23,19 @@ std::unique_ptr<ColliderPrimitive> ColliderBox::clone() const
 
 void ColliderBox::collide_with(ColliderPrimitive& other, CollisionHandler& handler)
 {
-    other.collide_with_box(*this, handler);
+    if (other.tag == "ColliderSphere")
+    {
+        collide_with_sphere(dynamic_cast<ColliderSphere&>(other), handler);
+    }
+    else if (other.tag == "ColliderBox")
+    {
+        collide_with_box(dynamic_cast<ColliderBox&>(other), handler);
+    }
+    else
+    {
+        // Handle unknown collider type
+        std::cerr << "Unknown collider type: " << other.tag << std::endl;
+    }
 }
 
 void ColliderBox::collide_with_sphere(ColliderSphere& sphere, CollisionHandler& handler)
