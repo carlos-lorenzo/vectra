@@ -22,18 +22,24 @@ void CollisionHandler::narrow_phase(const std::vector<PotentialContact>& potenti
         ColliderPrimitive& collider_one = objects[0]->get_collider();
         ColliderPrimitive& collider_two = objects[1]->get_collider();
 
-        solve_collision(collider_one, collider_two);
+        CollisionData collision_data = solve_collision(collider_one, collider_two);
+        if (collision_data.valid)
+        {
+            collision_data.set_objects(objects[0], objects[1]);
+            add_collision(collision_data);
+        }
     }
 }
 
-void CollisionHandler::solve_collision(ColliderPrimitive& first, ColliderPrimitive& second)
+CollisionData CollisionHandler::solve_collision(ColliderPrimitive& first, ColliderPrimitive& second)
 {
-    first.collide_with(second, *this);
+    return first.collide_with(second, *this);
 }
 
 
-void CollisionHandler::solve_sphere_sphere(const ColliderSphere& first, const ColliderSphere& second)
+CollisionData CollisionHandler::solve_sphere_sphere(const ColliderSphere& first, const ColliderSphere& second)
 {
+    CollisionData collision_data;
     const Transform& transform_one = first.get_transform();
     const Transform& transform_two = second.get_transform();
 
@@ -46,7 +52,7 @@ void CollisionHandler::solve_sphere_sphere(const ColliderSphere& first, const Co
 
     if (distance_squared >= radius_sum_squared)
     {
-        return; // No penetration
+        return collision_data; // No penetration
     }
     linkit::real distance = linkit::real_sqrt(distance_squared);
 
@@ -60,13 +66,14 @@ void CollisionHandler::solve_sphere_sphere(const ColliderSphere& first, const Co
     const linkit::Vector3 contact_point = transform_one.position + normal * (first.radius - 0.5f * penetration);
 
     const CollisionContact contact(contact_point, normal, penetration);
-    CollisionData collision_data;
     collision_data.add_contact(contact);
-    add_collision(collision_data);
+    return collision_data;
+
 }
 
-void CollisionHandler::solve_box_box(ColliderBox& first, ColliderBox& second)
+CollisionData CollisionHandler::solve_box_box(ColliderBox& first, ColliderBox& second)
 {
+    CollisionData collision_data;
     const Transform& tf1 = first.get_transform();
     const Transform& tf2 = second.get_transform();
 
@@ -121,10 +128,10 @@ void CollisionHandler::solve_box_box(ColliderBox& first, ColliderBox& second)
     };
 
     // 1. Test face normals of box 1
-    for (const auto& axis : axes1) if (!test_axis(axis)) return;
+    for (const auto& axis : axes1) if (!test_axis(axis)) return collision_data;
 
     // 2. Test face normals of box 2
-    for (const auto& axis : axes2) if (!test_axis(axis)) return;
+    for (const auto& axis : axes2) if (!test_axis(axis)) return collision_data;
 
     // 3. Test cross-products of edges
     auto cross = [](const linkit::Vector3& a, const linkit::Vector3& b) {
@@ -137,7 +144,7 @@ void CollisionHandler::solve_box_box(ColliderBox& first, ColliderBox& second)
 
     for (const auto& a1 : axes1) {
         for (const auto& a2 : axes2) {
-            if (!test_axis(cross(a1, a2))) return;
+            if (!test_axis(cross(a1, a2))) return collision_data;
         }
     }
 
@@ -166,14 +173,14 @@ void CollisionHandler::solve_box_box(ColliderBox& first, ColliderBox& second)
     linkit::Vector3 contact_point = (pt1 + pt2) * 0.5f;
 
     CollisionContact contact(contact_point, best_axis, min_overlap);
-    CollisionData collision_data;
     collision_data.add_contact(contact);
-    add_collision(collision_data);
+    return collision_data;
 }
 
 
-void CollisionHandler::solve_sphere_box(ColliderSphere& sphere, ColliderBox& box)
+CollisionData CollisionHandler::solve_sphere_box(ColliderSphere& sphere, ColliderBox& box)
 {
+    CollisionData collision_data;
     const Transform& sphere_transform = sphere.get_transform();
     const Transform& box_transform = box.get_transform();
 
@@ -218,7 +225,7 @@ void CollisionHandler::solve_sphere_box(ColliderSphere& sphere, ColliderBox& box
     const linkit::real radius_squared = sphere.radius * sphere.radius;
     if (distance_squared >= radius_squared)
     {
-        return; // No penetration
+        return collision_data; // No penetration
     }
 
     linkit::real distance = linkit::real_sqrt(distance_squared);
@@ -232,9 +239,8 @@ void CollisionHandler::solve_sphere_box(ColliderSphere& sphere, ColliderBox& box
     const linkit::Vector3 contact_point = sphere_transform.position + normal * (sphere.radius - 0.5f * penetration);
 
     const CollisionContact contact(contact_point, normal, penetration);
-    CollisionData collision_data;
     collision_data.add_contact(contact);
-    add_collision(collision_data);
+    return collision_data;
 }
 
 

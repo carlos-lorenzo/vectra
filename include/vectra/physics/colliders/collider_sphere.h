@@ -13,9 +13,9 @@ public:
     ColliderSphere(Transform* transform, linkit::real radius);
 
     [[nodiscard]] std::unique_ptr<ColliderPrimitive> clone() const override;
-    void collide_with(ColliderPrimitive& other, CollisionHandler& handler) override;
-    void collide_with_sphere(ColliderSphere& sphere, CollisionHandler& handler) override;
-    void collide_with_box(ColliderBox& box, CollisionHandler& handler) override;
+    CollisionData collide_with(ColliderPrimitive& other, CollisionHandler& handler) override;
+    CollisionData collide_with_sphere(ColliderSphere& sphere, CollisionHandler& handler) override;
+    CollisionData collide_with_box(ColliderBox& box, CollisionHandler& handler) override;
 };
 
 #endif //VECTRA_COLLIDER_SPHERE_H

@@ -9,6 +9,8 @@ class ColliderSphere;
 class ColliderBox;
 class CollisionHandler;
 
+#include "vectra/physics/collision_data.h"
+
 class ColliderPrimitive
 {
 protected:
@@ -28,9 +30,9 @@ public:
     void set_transform(Transform* new_transform);
 
     [[nodiscard]] virtual std::unique_ptr<ColliderPrimitive> clone() const = 0;
-    virtual void collide_with(ColliderPrimitive& other, CollisionHandler& handler) = 0;
-    virtual void collide_with_sphere(ColliderSphere& sphere, CollisionHandler& handler) = 0;
-    virtual void collide_with_box(ColliderBox& box, CollisionHandler& handler) = 0;
+    virtual CollisionData collide_with(ColliderPrimitive& other, CollisionHandler& handler) = 0;
+    virtual CollisionData collide_with_sphere(ColliderSphere& sphere, CollisionHandler& handler) = 0;
+    virtual CollisionData collide_with_box(ColliderBox& box, CollisionHandler& handler) = 0;
 };
 
 #endif //VECTRA_COLLIDER_PRIMITIVE_H

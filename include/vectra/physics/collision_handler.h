@@ -19,10 +19,10 @@ class CollisionHandler
         void add_collision(const CollisionData& collision);
         void narrow_phase(const std::vector<PotentialContact>& potential_contacts);
 
-        void solve_collision(ColliderPrimitive& first, ColliderPrimitive& second);
-        void solve_sphere_sphere(const ColliderSphere& first, const ColliderSphere& second);
-        void solve_box_box(ColliderBox& first, ColliderBox& second);
-        void solve_sphere_box(ColliderSphere& sphere, ColliderBox& box);
+        CollisionData solve_collision(ColliderPrimitive& first, ColliderPrimitive& second);
+        CollisionData solve_sphere_sphere(const ColliderSphere& first, const ColliderSphere& second);
+        CollisionData solve_box_box(ColliderBox& first, ColliderBox& second);
+        CollisionData solve_sphere_box(ColliderSphere& sphere, ColliderBox& box);
         void solve_contacts();
         void clear_contacts();
 

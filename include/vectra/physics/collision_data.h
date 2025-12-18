@@ -4,15 +4,21 @@
 #include <vector>
 #include "vectra/physics/collision_contact.h"
 
+
+class GameObject;
 class CollisionData
 {
     public:
         CollisionData();
         void add_contact(const CollisionContact& contact);
         [[nodiscard]] const std::vector<CollisionContact>& get_contacts() const;
+        void set_objects(GameObject* obj1, GameObject* obj2);
+        GameObject* objects[2];
+        bool valid;
 
     private:
         std::vector<CollisionContact> contacts;
+
     // Will include other parameters such as restitution once I get narrow phase detection working
 };
 

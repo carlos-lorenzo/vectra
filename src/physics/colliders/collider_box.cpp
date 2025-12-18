@@ -21,15 +21,15 @@ std::unique_ptr<ColliderPrimitive> ColliderBox::clone() const
     return std::make_unique<ColliderBox>(transform, half_sizes);
 }
 
-void ColliderBox::collide_with(ColliderPrimitive& other, CollisionHandler& handler)
+CollisionData ColliderBox::collide_with(ColliderPrimitive& other, CollisionHandler& handler)
 {
     if (other.tag == "ColliderSphere")
     {
-        collide_with_sphere(dynamic_cast<ColliderSphere&>(other), handler);
+        return collide_with_sphere(dynamic_cast<ColliderSphere&>(other), handler);
     }
     else if (other.tag == "ColliderBox")
     {
-        collide_with_box(dynamic_cast<ColliderBox&>(other), handler);
+        return collide_with_box(dynamic_cast<ColliderBox&>(other), handler);
     }
     else
     {
@@ -38,14 +38,14 @@ void ColliderBox::collide_with(ColliderPrimitive& other, CollisionHandler& handl
     }
 }
 
-void ColliderBox::collide_with_sphere(ColliderSphere& sphere, CollisionHandler& handler)
+CollisionData ColliderBox::collide_with_sphere(ColliderSphere& sphere, CollisionHandler& handler)
 {
-    handler.solve_sphere_box(sphere, *this);
+    return handler.solve_sphere_box(sphere, *this);
 }
 
-void ColliderBox::collide_with_box(ColliderBox& box, CollisionHandler& handler)
+CollisionData ColliderBox::collide_with_box(ColliderBox& box, CollisionHandler& handler)
 {
-    handler.solve_box_box(*this, box);
+    return handler.solve_box_box(*this, box);
 }
 
 std::array<linkit::Vector3, 8> ColliderBox::get_vertices() const
