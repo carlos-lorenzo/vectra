@@ -246,6 +246,15 @@ CollisionData CollisionHandler::solve_sphere_box(ColliderSphere& sphere, Collide
 
 void CollisionHandler::solve_contacts()
 {
+    if (collisions.empty()) return;
+    for (const auto &collision : collisions)
+    {
+
+        for (const auto& contact : collision.get_contacts())
+        {
+            return;
+        }
+    }
 
 }
 

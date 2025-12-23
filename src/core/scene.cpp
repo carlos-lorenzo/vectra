@@ -113,7 +113,8 @@ void Scene::step(const linkit::real dt)
     possible_contacts = bvh_root->potential_contacts_inside(possible_contacts, limit);
     //std::cout << "Potential contacts: " << possible_contacts.size() << std::endl;
     collision_handler.narrow_phase(possible_contacts);
-    std::cout << "Actual contacts: " << collision_handler.collisions.size() << std::endl;
+    //std::cout << "Actual contacts: " << collision_handler.collisions.size() << std::endl;
+    collision_handler.solve_contacts();
 
     for (auto& obj : game_objects)
     {

@@ -30,15 +30,15 @@ int main()
     particle_2.set_shape("cube");
     particle_2.rb.transform.position = linkit::Vector3(0, 0, 0);
     particle_2.rb.velocity = linkit::Vector3(0, 0, 0);
-    particle_2.rb.transform.scale = linkit::Vector3(0.5, 0.5, 0.5);
+    //particle_2.rb.transform.scale = linkit::Vector3(1, 0.5, 0.5);
     scene.add_game_object(particle_2);
 
 
 
-    linkit::Vector3 anchor = linkit::Vector3(-1, 2, 0.0);
+    linkit::Vector3 anchor = linkit::Vector3(-1, 0, 0.0);
 
     //scene.force_registry.add(&scene.game_objects[0], std::make_shared<AnchoredSpring>(anchor, 1, 1, 1));
-    scene.force_registry.add(&scene.game_objects[0], std::make_shared<AnchoredSpring>(anchor, 1, 1, 1));
+    scene.force_registry.add(&scene.game_objects[0], std::make_shared<SimpleGravity>(anchor));
     scene_renderer.play_scene(scene);
     return 0;
 }

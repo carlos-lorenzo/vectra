@@ -10,6 +10,8 @@ struct CollisionContact
     linkit::real penetration_depth;
 
     CollisionContact(const linkit::Vector3& collision_point, const linkit::Vector3& collision_normal, linkit::real penetration_depth);
+    linkit::Matrix3 contact_basis_to_world();
+    linkit::Matrix3 contact_basis_to_world_inverse();
 };
 
 #endif //VECTRA_COLLISION_CONTACT_H
