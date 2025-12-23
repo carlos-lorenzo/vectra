@@ -30,22 +30,23 @@ CollisionData ColliderBox::collide_with(ColliderPrimitive& other, CollisionHandl
     else if (other.tag == "ColliderBox")
     {
         return collide_with_box(dynamic_cast<ColliderBox&>(other), handler);
-    }
-    else
+    } else
     {
-        // Handle unknown collider type
         std::cerr << "Unknown collider type: " << other.tag << std::endl;
     }
+    CollisionData collision_data;
+    return collision_data;
+
 }
 
 CollisionData ColliderBox::collide_with_sphere(ColliderSphere& sphere, CollisionHandler& handler)
 {
-    return handler.solve_sphere_box(sphere, *this);
+    return CollisionHandler::solve_sphere_box(sphere, *this);
 }
 
 CollisionData ColliderBox::collide_with_box(ColliderBox& box, CollisionHandler& handler)
 {
-    return handler.solve_box_box(*this, box);
+    return CollisionHandler::solve_box_box(*this, box);
 }
 
 std::array<linkit::Vector3, 8> ColliderBox::get_vertices() const

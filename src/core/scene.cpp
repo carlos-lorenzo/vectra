@@ -46,10 +46,21 @@ void Scene::rebuild_bvh_node_map()
 // add_game_object
 void Scene::add_game_object(GameObject obj)
 {
-    obj.rb.set_inverse_inertia_tensor(obj.rb.cuboid_inertia_tensor());
+    if (obj.get_collider().tag == "ColliderBox")
+    {
+        obj.rb.set_inverse_inertia_tensor(obj.rb.cuboid_inertia_tensor());
+    }
+    else if (obj.get_collider().tag == "ColliderSphere")
+    {
+        obj.rb.set_inverse_inertia_tensor(obj.rb.sphere_inertia_tensor());
+    }
+    else
+    {
+        obj.rb.set_inverse_inertia_tensor(obj.rb.cuboid_inertia_tensor());
+    }
 
     // Compute bounding info before moving the object
-    linkit::real radius = obj.rb.transform.size();
+    linkit::real radius = (obj.rb.transform.scale.x + obj.rb.transform.scale.y + obj.rb.transform.scale.z) / 3.0f;;
     auto position = obj.rb.transform.position;
 
     game_objects.push_back(std::move(obj));
@@ -108,14 +119,6 @@ void Scene::step(const linkit::real dt)
 {
     update_bvh();
 
-    unsigned int limit = 10;
-    std::vector<PotentialContact> possible_contacts; // defined within collision handler perhaps
-    possible_contacts = bvh_root->potential_contacts_inside(possible_contacts, limit);
-    //std::cout << "Potential contacts: " << possible_contacts.size() << std::endl;
-    collision_handler.narrow_phase(possible_contacts);
-    //std::cout << "Actual contacts: " << collision_handler.collisions.size() << std::endl;
-    collision_handler.solve_contacts();
-
     for (auto& obj : game_objects)
     {
         obj.rb.clear_accumulators();
@@ -127,6 +130,14 @@ void Scene::step(const linkit::real dt)
     {
         obj.rb.step(dt);
     }
+
+    unsigned int limit = 10;
+    std::vector<PotentialContact> possible_contacts; // defined within collision handler perhaps
+    possible_contacts = bvh_root->potential_contacts_inside(possible_contacts, limit);
+    collision_handler.narrow_phase(possible_contacts);
+    collision_handler.solve_contacts();
+    collision_handler.resolve_interpretations();
+
 
     collision_handler.clear_contacts();
 }

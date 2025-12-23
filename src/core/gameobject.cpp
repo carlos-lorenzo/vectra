@@ -2,6 +2,7 @@
 #include <iostream>
 #include "vectra/core/gameobject.h"
 #include "vectra/physics/colliders/collider_sphere.h"
+#include "vectra/physics/colliders/collider_box.h"
 
 GameObject::GameObject()
     :
@@ -37,7 +38,9 @@ void GameObject::set_collider_type(const std::string& tag)
 {
     if (tag == "ColliderSphere")
     {
-        collider = std::make_unique<ColliderSphere>(&rb.transform, rb.transform.size());
+        linkit::real radius = (rb.transform.scale.x + rb.transform.scale.y + rb.transform.scale.z) / 3.0f;
+        collider = std::make_unique<ColliderSphere>(&rb.transform, radius);
+
     }
     else if (tag == "ColliderBox")
     {

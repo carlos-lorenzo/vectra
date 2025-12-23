@@ -5,6 +5,7 @@ CollisionData::CollisionData() = default;
 void CollisionData::add_contact(const CollisionContact& contact)
 {
     contacts.push_back(contact);
+    restitution = 0;
     valid = true;
 }
 

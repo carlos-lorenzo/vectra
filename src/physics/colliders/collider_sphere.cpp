@@ -34,10 +34,10 @@ CollisionData ColliderSphere::collide_with(ColliderPrimitive& other, CollisionHa
 
 CollisionData ColliderSphere::collide_with_sphere(ColliderSphere& sphere, CollisionHandler& handler)
 {
-    return handler.solve_sphere_sphere(*this, sphere);
+    return CollisionHandler::solve_sphere_sphere(*this, sphere);
 }
 
 CollisionData ColliderSphere::collide_with_box(ColliderBox& box, CollisionHandler& handler)
 {
-    return handler.solve_sphere_box(*this, box);
+    return CollisionHandler::solve_sphere_box(*this, box);
 }

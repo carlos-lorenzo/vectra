@@ -3,10 +3,13 @@
 CollisionContact::CollisionContact(const linkit::Vector3& collision_point, const linkit::Vector3& collision_normal, const linkit::real penetration_depth) :
 collision_point(collision_point),
 collision_normal(collision_normal),
-penetration_depth(penetration_depth) {}
+penetration_depth(penetration_depth)
+{
+    relative_positions = std::vector<linkit::Vector3>();
+}
 
 using namespace linkit;
-Matrix3 CollisionContact::contact_basis_to_world()
+Matrix3 CollisionContact::contact_basis_to_world() const
 {
 
     Vector3 contact_tangents[2];
@@ -36,7 +39,7 @@ Matrix3 CollisionContact::contact_basis_to_world()
 
 }
 
-Matrix3 CollisionContact::contact_basis_to_world_inverse()
+Matrix3 CollisionContact::contact_basis_to_world_inverse() const
 {
     Matrix3 contact_to_world = contact_basis_to_world();
     // Rotation matrix

@@ -24,6 +24,7 @@ class CollisionHandler
         static CollisionData solve_box_box(ColliderBox& first, ColliderBox& second);
         static CollisionData solve_sphere_box(ColliderSphere& sphere, ColliderBox& box);
         void solve_contacts();
+        void resolve_interpretations();
         void clear_contacts();
 
     std::vector<CollisionData> collisions;

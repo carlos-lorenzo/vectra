@@ -21,7 +21,7 @@ Rigidbody::Rigidbody()
     accumulated_force = linkit::Vector3(0.0f, 0.0f, 0.0f);
     accumulated_torque = linkit::Vector3(0.0f, 0.0f, 0.0f);
 
-    // Will be set by child? constructor? bounding box?
+    // Will be set by a child? constructor? bounding box?
     _local_inverse_inertia_tensor = linkit::Matrix3();
 
     mass = 1.0f;
@@ -132,6 +132,15 @@ linkit::Matrix3 Rigidbody::cuboid_inertia_tensor() const
     inertia_tensor.m[0][0] = (1.0f / 12.0f) * mass * (transform.scale.y * transform.scale.y + transform.scale.z * transform.scale.z);
     inertia_tensor.m[1][1] = (1.0f / 12.0f) * mass * (transform.scale.x * transform.scale.x + transform.scale.z * transform.scale.z);
     inertia_tensor.m[2][2] = (1.0f / 12.0f) * mass * (transform.scale.x * transform.scale.x + transform.scale.y * transform.scale.y);
+    return inertia_tensor;
+}
+
+linkit::Matrix3 Rigidbody::sphere_inertia_tensor() const
+{
+    linkit::Matrix3 inertia_tensor;
+    inertia_tensor.m[0][0] = (2.0f / 5.0f) * mass * (transform.scale.y * transform.scale.y + transform.scale.z * transform.scale.z);
+    inertia_tensor.m[1][1] = (2.0f / 5.0f) * mass * (transform.scale.x * transform.scale.x + transform.scale.z * transform.scale.z);
+    inertia_tensor.m[2][2] = (2.0f / 5.0f) * mass * (transform.scale.x * transform.scale.x + transform.scale.y * transform.scale.y);
     return inertia_tensor;
 }
 

@@ -48,6 +48,7 @@ class Rigidbody
         [[nodiscard]] bool has_finite_mass() const;
         [[nodiscard]] bool has_infinite_mass() const;
         [[nodiscard]] linkit::Matrix3 cuboid_inertia_tensor() const;
+        [[nodiscard]] linkit::Matrix3 sphere_inertia_tensor() const;
         void set_inverse_inertia_tensor(const linkit::Matrix3& inertia_tensor);
 };
 

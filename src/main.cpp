@@ -18,16 +18,16 @@ int main()
 
 
     GameObject particle_1;
-    particle_1.set_collider_type("ColliderBox");
-    particle_1.set_shape("cube");
+    particle_1.set_collider_type("ColliderSphere");
+    particle_1.set_shape("sphere");
     particle_1.rb.transform.position = linkit::Vector3(3, 0, 0);
     //particle_1.rb.angular_acceleration = linkit::Vector3(1, 1, 1);
     particle_1.rb.velocity = linkit::Vector3(0, 0, 0);
     scene.add_game_object(particle_1);
 
     GameObject particle_2;
-    particle_2.set_collider_type("ColliderBox");
-    particle_2.set_shape("cube");
+    particle_2.set_collider_type("ColliderSphere");
+    particle_2.set_shape("sphere");
     particle_2.rb.transform.position = linkit::Vector3(0, 0, 0);
     particle_2.rb.velocity = linkit::Vector3(0, 0, 0);
     //particle_2.rb.transform.scale = linkit::Vector3(1, 0.5, 0.5);
@@ -39,6 +39,7 @@ int main()
 
     //scene.force_registry.add(&scene.game_objects[0], std::make_shared<AnchoredSpring>(anchor, 1, 1, 1));
     scene.force_registry.add(&scene.game_objects[0], std::make_shared<SimpleGravity>(anchor));
+    scene.force_registry.add(&scene.game_objects[1], std::make_shared<SimpleGravity>(-3*anchor));
     scene_renderer.play_scene(scene);
     return 0;
 }
