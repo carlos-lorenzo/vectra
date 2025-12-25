@@ -13,14 +13,17 @@ class CollisionData
     public:
         CollisionData();
         void add_contact(const CollisionContact& contact);
+        void add_contact(const CollisionContact& contact, linkit::real contact_restitution);
         [[nodiscard]] const std::vector<CollisionContact>& get_contacts() const;
         void set_objects(GameObject* obj1, GameObject* obj2);
-        GameObject* objects[2];
-        bool valid; // Required to allow for collision checks to return no collisions
-        linkit::real restitution;
-        std::vector<CollisionContact> contacts;
+        void set_restitution(linkit::real restitution_value);
+        [[nodiscard]] bool has_duplicate_contact(const CollisionContact& contact, linkit::real tolerance = 0.01f) const;
 
-    // Will include other parameters such as restitution once I get narrow phase detection working
+        GameObject* objects[2] = {nullptr, nullptr};
+        bool valid = false;
+        linkit::real restitution = 0.0f;
+        linkit::real friction = 0.4f;  // Default friction coefficient
+        std::vector<CollisionContact> contacts;
 };
 
 #endif //VECTRA_COLLISION_DATA_H

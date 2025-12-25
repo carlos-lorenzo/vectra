@@ -3,7 +3,18 @@
 CollisionContact::CollisionContact(const linkit::Vector3& collision_point, const linkit::Vector3& collision_normal, const linkit::real penetration_depth) :
 collision_point(collision_point),
 collision_normal(collision_normal),
-penetration_depth(penetration_depth)
+penetration_depth(penetration_depth),
+feature()
+{
+    relative_positions = std::vector<linkit::Vector3>();
+}
+
+CollisionContact::CollisionContact(const linkit::Vector3& collision_point, const linkit::Vector3& collision_normal,
+                                   const linkit::real penetration_depth, const ContactFeature& feature) :
+collision_point(collision_point),
+collision_normal(collision_normal),
+penetration_depth(penetration_depth),
+feature(feature)
 {
     relative_positions = std::vector<linkit::Vector3>();
 }
