@@ -137,10 +137,14 @@ linkit::Matrix3 Rigidbody::cuboid_inertia_tensor() const
 
 linkit::Matrix3 Rigidbody::sphere_inertia_tensor() const
 {
+    // For a sphere, the inertia tensor is (2/5) * m * r^2 on all diagonal elements
+    // Using the average scale as the radius
+    linkit::real radius = (transform.scale.x + transform.scale.y + transform.scale.z) / 3.0f;
+    linkit::real inertia = (2.0f / 5.0f) * mass * radius * radius;
     linkit::Matrix3 inertia_tensor;
-    inertia_tensor.m[0][0] = (2.0f / 5.0f) * mass * (transform.scale.y * transform.scale.y + transform.scale.z * transform.scale.z);
-    inertia_tensor.m[1][1] = (2.0f / 5.0f) * mass * (transform.scale.x * transform.scale.x + transform.scale.z * transform.scale.z);
-    inertia_tensor.m[2][2] = (2.0f / 5.0f) * mass * (transform.scale.x * transform.scale.x + transform.scale.y * transform.scale.y);
+    inertia_tensor.m[0][0] = inertia;
+    inertia_tensor.m[1][1] = inertia;
+    inertia_tensor.m[2][2] = inertia;
     return inertia_tensor;
 }
 

@@ -41,7 +41,14 @@ CollisionData ColliderBox::collide_with(ColliderPrimitive& other, CollisionHandl
 
 CollisionData ColliderBox::collide_with_sphere(ColliderSphere& sphere, CollisionHandler& handler)
 {
-    return CollisionHandler::solve_sphere_box(sphere, *this);
+    CollisionData result = CollisionHandler::solve_sphere_box(sphere, *this);
+    // Flip the normal since solve_sphere_box returns normal pointing from sphere to box,
+    // but the caller expects normal from box (this) to sphere
+    for (auto& contact : result.contacts)
+    {
+        contact.collision_normal = contact.collision_normal * -1.0f;
+    }
+    return result;
 }
 
 CollisionData ColliderBox::collide_with_box(ColliderBox& box, CollisionHandler& handler)

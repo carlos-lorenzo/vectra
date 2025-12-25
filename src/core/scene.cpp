@@ -60,7 +60,7 @@ void Scene::add_game_object(GameObject obj)
     }
 
     // Compute bounding info before moving the object
-    linkit::real radius = (obj.rb.transform.scale.x + obj.rb.transform.scale.y + obj.rb.transform.scale.z) / 3.0f;;
+    linkit::real radius = obj.rb.transform.scale.magnitude();
     auto position = obj.rb.transform.position;
 
     game_objects.push_back(std::move(obj));

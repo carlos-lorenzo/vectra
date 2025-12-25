@@ -5,7 +5,7 @@ CollisionData::CollisionData() = default;
 void CollisionData::add_contact(const CollisionContact& contact)
 {
     contacts.push_back(contact);
-    restitution = 0;
+    restitution = 0;  // Reasonable default restitution for bouncy collisions
     valid = true;
 }
 

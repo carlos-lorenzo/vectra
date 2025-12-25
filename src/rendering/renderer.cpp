@@ -130,9 +130,9 @@ void Renderer::draw_frame(Scene &scene, const glm::mat4 &projection_matrix, doub
     }
 
     // Visualise BVH
-    // if (scene.bvh_root) {
-    //     debug_drawer_->draw_bvh(scene.bvh_root.get(), view_matrix, projection_matrix);
-    // }
+    if (scene.bvh_root) {
+        debug_drawer_->draw_bvh(scene.bvh_root.get(), view_matrix, projection_matrix);
+    }
 
     scene.skybox.draw(view_matrix, projection_matrix);
     glfwSwapBuffers(pWindow_);

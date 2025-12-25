@@ -28,9 +28,10 @@ void CollisionHandler::narrow_phase(const std::vector<PotentialContact>& potenti
         {
             for (auto &contact : collision_data.contacts)
             {
+                // Relative position is FROM body center TO contact point
                 contact.relative_positions = {
-                    objects[0]->rb.transform.position - contact.collision_point,
-                    objects[1]->rb.transform.position - contact.collision_point
+                    (contact.collision_point - objects[0]->rb.transform.position),
+                    (contact.collision_point - objects[1]->rb.transform.position)
                 };
 
             }
@@ -176,7 +177,7 @@ CollisionData CollisionHandler::solve_box_box(ColliderBox& first, ColliderBox& s
     };
 
     linkit::Vector3 pt1 = get_support(first, axes1, best_axis);
-    linkit::Vector3 pt2 = get_support(second, axes2, best_axis * -1.0f);
+    linkit::Vector3 pt2 = get_support(second, axes2, best_axis*-1.0f);
 
     // Approximate contact point as the average of the deepest points
     linkit::Vector3 contact_point = (pt1 + pt2) * 0.5f;
@@ -262,36 +263,79 @@ void CollisionHandler::solve_contacts()
         for (auto& contact : collision.get_contacts())
         {
             linkit::real delta_velocity = 0;
-            linkit::Vector3 current_velocity = linkit::Vector3(0, 0, 0);
-            for (int i=0; i<2;i++)
+            linkit::Vector3 closing_velocity = linkit::Vector3(0, 0, 0);
+
+            for (int i=0; i<2; i++)
             {
+                linkit::Matrix3 inverse_inertia_tensor = collision.objects[i]->rb._local_inverse_inertia_tensor;
 
                 linkit::Vector3 torque = contact.relative_positions[i] % contact.collision_normal;
-                linkit::Vector3 delta_angular_velocity = collision.objects[i]->rb._local_inverse_inertia_tensor * torque;
+                linkit::Vector3 delta_angular_velocity = inverse_inertia_tensor * torque;
                 delta_velocity += (delta_angular_velocity % contact.relative_positions[i]) * contact.collision_normal;
                 delta_velocity += collision.objects[i]->rb.inverse_mass;
-                current_velocity += collision.objects[i]->rb.angular_velocity % contact.relative_positions[i] + collision.objects[i]->rb.velocity;
+
+                // Calculate velocity at contact point for this body
+                linkit::Vector3 velocity_at_contact = collision.objects[i]->rb.velocity +
+                    collision.objects[i]->rb.angular_velocity % contact.relative_positions[i];
+
+                // First object adds, second object subtracts (closing velocity)
+                if (i == 0) {
+                    closing_velocity += velocity_at_contact;
+                } else {
+                    closing_velocity -= velocity_at_contact;
+                }
             }
 
-            linkit::Vector3 contact_velocity = contact.contact_basis_to_world_inverse() * current_velocity;
-            linkit::real desired_delta_velocity = -contact_velocity.x * (1 + collision.restitution);
-            linkit::Vector3 impulse_contact;
-            impulse_contact.x = desired_delta_velocity / delta_velocity;
-            linkit::Vector3 impulse = contact.contact_basis_to_world() * impulse_contact;
+            // Separating velocity along the normal (rate at which objects separate)
+            // closing_velocity = v0 - v1, so separating = (v1 - v0) · n = -closing · n
+            linkit::real separating_velocity = -(closing_velocity * contact.collision_normal);
 
-            for (int i=0; i<2;i++)
+            // If objects are already separating, skip
+            if (separating_velocity > 0) continue;
+
+            linkit::real desired_delta_velocity = -separating_velocity * (1 + collision.restitution);
+
+            // Avoid division by zero
+            if (delta_velocity < linkit::REAL_EPSILON) continue;
+
+            linkit::real impulse_magnitude = desired_delta_velocity / delta_velocity;
+
+            // Safety check for NaN/Inf
+            if (!std::isfinite(impulse_magnitude)) continue;
+
+            linkit::Vector3 impulse = contact.collision_normal * impulse_magnitude;
+
+            // Apply impulse to first object (pushed away from object 1, opposite to normal)
             {
+                linkit::Vector3 velocity_change = impulse * collision.objects[0]->rb.inverse_mass;
+                linkit::Vector3 impulse_torque = contact.relative_positions[0] % impulse;
+                linkit::Vector3 rotation_change = collision.objects[0]->rb._local_inverse_inertia_tensor * impulse_torque;
 
-                linkit::Vector3 velocity_change = impulse * collision.objects[i]->rb.inverse_mass;
-                collision.objects[i]->rb.velocity += velocity_change;
-
-                linkit::Vector3 impulse_torque = impulse % contact.relative_positions[i];
-                linkit::Vector3 rotation_change = collision.objects[i]->rb._local_inverse_inertia_tensor * impulse_torque;
-                collision.objects[i]->rb.angular_velocity += rotation_change;
-
-                impulse *= -1;
+                if (std::isfinite(velocity_change.x) && std::isfinite(velocity_change.y) && std::isfinite(velocity_change.z))
+                {
+                    collision.objects[0]->rb.velocity -= velocity_change;
+                }
+                if (std::isfinite(rotation_change.x) && std::isfinite(rotation_change.y) && std::isfinite(rotation_change.z))
+                {
+                    collision.objects[0]->rb.angular_velocity -= rotation_change;
+                }
             }
 
+            // Apply impulse to second object (pushed away from object 0, along normal)
+            {
+                linkit::Vector3 velocity_change = impulse * collision.objects[1]->rb.inverse_mass;
+                linkit::Vector3 impulse_torque = contact.relative_positions[1] % impulse;
+                linkit::Vector3 rotation_change = collision.objects[1]->rb._local_inverse_inertia_tensor * impulse_torque;
+
+                if (std::isfinite(velocity_change.x) && std::isfinite(velocity_change.y) && std::isfinite(velocity_change.z))
+                {
+                    collision.objects[1]->rb.velocity += velocity_change;
+                }
+                if (std::isfinite(rotation_change.x) && std::isfinite(rotation_change.y) && std::isfinite(rotation_change.z))
+                {
+                    collision.objects[1]->rb.angular_velocity += rotation_change;
+                }
+            }
         }
     }
 
@@ -324,6 +368,10 @@ void CollisionHandler::resolve_interpretations()
                 linear_inertia_contact[i] = body->rb.inverse_mass;
                 total_inertia += angular_inertia_contact[i] + linear_inertia_contact[i];
             }
+
+            // Avoid division by zero
+            if (total_inertia < linkit::REAL_EPSILON) continue;
+
             const linkit::real inverse_total_inertia = 1.0f / total_inertia;
 
 
@@ -351,15 +399,30 @@ void CollisionHandler::resolve_interpretations()
                     }
                     linear_move[i] = total_move - angular_move[i];
                 }
-                linkit::Matrix3 inverse_inertia_tensor = body->rb._local_inverse_inertia_tensor;
-                linkit::Vector3 impulsive_torque = contact.relative_positions[i] % contact.collision_normal;
-                linkit::Vector3 impulse_per_move = inverse_inertia_tensor * impulsive_torque;
-                linkit::Vector3 rotation_per_move = impulse_per_move * 1/angular_inertia_contact[0];
-                linkit::Vector3 rotation = rotation_per_move * angular_move[i];
-                //body->rb.transform.rotation.add_scaled_vector(rotation, 1);
+
+                // Only apply angular resolution if there's angular inertia
+                if (linkit::real_abs(angular_inertia_contact[i]) > linkit::REAL_EPSILON)
+                {
+                    linkit::Matrix3 inverse_inertia_tensor = body->rb._local_inverse_inertia_tensor;
+                    linkit::Vector3 impulsive_torque = contact.relative_positions[i] % contact.collision_normal;
+                    linkit::Vector3 impulse_per_move = inverse_inertia_tensor * impulsive_torque;
+                    linkit::Vector3 rotation_per_move = impulse_per_move * (1.0/angular_inertia_contact[i]);
+                    linkit::Vector3 rotation = rotation_per_move * angular_move[i];
+
+                    // Safety check for NaN/Inf
+                    if (std::isfinite(rotation.x) && std::isfinite(rotation.y) && std::isfinite(rotation.z))
+                    {
+                        body->rb.transform.rotation.add_scaled_vector(rotation, 1);
+                        body->rb.transform.rotation.normalize();
+                    }
+                }
 
                 // Linear resolution
-                body->rb.transform.translate(contact.collision_normal * linear_move[i]);
+                linkit::Vector3 linear_displacement = contact.collision_normal * linear_move[i];
+                if (std::isfinite(linear_displacement.x) && std::isfinite(linear_displacement.y) && std::isfinite(linear_displacement.z))
+                {
+                    body->rb.transform.translate(linear_displacement);
+                }
 
 
             }
