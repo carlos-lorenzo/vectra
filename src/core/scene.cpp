@@ -131,7 +131,7 @@ void Scene::step(const linkit::real dt)
         obj.rb.step(dt);
     }
 
-    unsigned int limit = 10;
+    unsigned int limit = 100;
     std::vector<PotentialContact> possible_contacts;
     possible_contacts = bvh_root->potential_contacts_inside(possible_contacts, limit);
     //std::cout << "Number of potential contacts: " << possible_contacts.size() << std::endl;

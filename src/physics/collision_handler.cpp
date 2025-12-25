@@ -97,7 +97,7 @@ CollisionData CollisionHandler::solve_box_box(ColliderBox& first, ColliderBox& s
     int best_case = -1;
     linkit::Vector3 best_axis;
 
-    // Track overlaps for each axis type to determine contact type
+    // Track overlaps for each axis type to determine the contact type
     linkit::real face_overlap_1 = 1e20f;
     linkit::real face_overlap_2 = 1e20f;
     linkit::real edge_overlap = 1e20f;
@@ -231,7 +231,6 @@ CollisionData CollisionHandler::solve_sphere_box(ColliderSphere& sphere, Collide
     linkit::Vector3 box_center = box_transform.position;
 
     // Extract the box's local axes from the model matrix
-    // Assuming Vector3 is treated as a point (w=1), M * (1,0,0) = center + axis_x
     linkit::Vector3 axis_x = box_model * linkit::Vector3(1, 0, 0) - box_center;
     linkit::Vector3 axis_y = box_model * linkit::Vector3(0, 1, 0) - box_center;
     linkit::Vector3 axis_z = box_model * linkit::Vector3(0, 0, 1) - box_center;
@@ -248,8 +247,76 @@ CollisionData CollisionHandler::solve_sphere_box(ColliderSphere& sphere, Collide
         rel_center * axis_z
     );
 
-    // Find the closest point on the box to the sphere center in local space
-    // Since we are in local space, the box is axis-aligned
+    // Check if sphere center is inside the box
+    bool inside = std::abs(local_center.x) <= box.half_sizes.x &&
+                  std::abs(local_center.y) <= box.half_sizes.y &&
+                  std::abs(local_center.z) <= box.half_sizes.z;
+
+    if (inside)
+    {
+        // Sphere center is inside the box - find the closest face to push out
+        linkit::real dist_x = box.half_sizes.x - std::abs(local_center.x);
+        linkit::real dist_y = box.half_sizes.y - std::abs(local_center.y);
+        linkit::real dist_z = box.half_sizes.z - std::abs(local_center.z);
+
+        linkit::Vector3 normal;
+        linkit::real penetration;
+
+        // Choose face with minimum distance to push out
+        // When distances are equal, prefer the face the sphere is closest to exiting
+        if (dist_x < dist_y && dist_x < dist_z)
+        {
+            // Closest to X face
+            normal = (local_center.x >= 0) ? axis_x : axis_x * -1.0;
+            penetration = dist_x + sphere.radius;
+        }
+        else if (dist_y < dist_x && dist_y < dist_z)
+        {
+            // Closest to Y face
+            normal = (local_center.y >= 0) ? axis_y : axis_y * -1.0;
+            penetration = dist_y + sphere.radius;
+        }
+        else if (dist_z < dist_x && dist_z < dist_y)
+        {
+            // Closest to Z face
+            normal = (local_center.z >= 0) ? axis_z : axis_z * -1.0;
+            penetration = dist_z + sphere.radius;
+        }
+        else
+        {
+            // Tie-breaker: distances are equal, use the axis with largest absolute local coordinate
+            // This represents the direction the sphere came from
+            linkit::real abs_x = std::abs(local_center.x);
+            linkit::real abs_y = std::abs(local_center.y);
+            linkit::real abs_z = std::abs(local_center.z);
+
+            if (abs_x >= abs_y && abs_x >= abs_z)
+            {
+                normal = (local_center.x >= 0) ? axis_x : axis_x * -1.0;
+                penetration = dist_x + sphere.radius;
+            }
+            else if (abs_y >= abs_x && abs_y >= abs_z)
+            {
+                normal = (local_center.y >= 0) ? axis_y : axis_y * -1.0;
+                penetration = dist_y + sphere.radius;
+            }
+            else
+            {
+                normal = (local_center.z >= 0) ? axis_z : axis_z * -1.0;
+                penetration = dist_z + sphere.radius;
+            }
+        }
+
+        // Flip normal to point from sphere to box (convention: normal from first to second object)
+        normal = normal * -1.0;
+
+        linkit::Vector3 contact_point = sphere_transform.position - normal * (sphere.radius - penetration * 0.5);
+        CollisionContact contact(contact_point, normal, penetration);
+        collision_data.add_contact(contact);
+        return collision_data;
+    }
+
+    // Sphere center is outside - find closest point on box surface
     linkit::Vector3 closest_local;
     closest_local.x = std::clamp(local_center.x, -box.half_sizes.x, box.half_sizes.x);
     closest_local.y = std::clamp(local_center.y, -box.half_sizes.y, box.half_sizes.y);
@@ -261,24 +328,42 @@ CollisionData CollisionHandler::solve_sphere_box(ColliderSphere& sphere, Collide
                                     axis_y * closest_local.y +
                                     axis_z * closest_local.z;
 
-    // Calculate the vector from the sphere center to the closest point on the box
+    // Calculate the vector from sphere center to closest point (points from sphere to box)
     const linkit::Vector3 delta = closest_world - sphere_transform.position;
     const linkit::real distance_squared = delta.magnitude_squared();
     const linkit::real radius_squared = sphere.radius * sphere.radius;
+
     if (distance_squared >= radius_squared)
     {
         return collision_data; // No penetration
     }
 
     linkit::real distance = linkit::real_sqrt(distance_squared);
+
+    // Normal points from sphere to box (convention: from first to second object)
+    linkit::Vector3 normal;
     if (distance < linkit::REAL_EPSILON)
     {
-        distance = linkit::REAL_EPSILON;
+        // Sphere center is exactly on box surface - use closest face normal (pointing inward)
+        linkit::real dx = box.half_sizes.x - std::abs(local_center.x);
+        linkit::real dy = box.half_sizes.y - std::abs(local_center.y);
+        linkit::real dz = box.half_sizes.z - std::abs(local_center.z);
+
+        // Normal points from sphere toward box center (inward)
+        if (dx <= dy && dx <= dz)
+            normal = (local_center.x >= 0) ? axis_x * -1.0 : axis_x;
+        else if (dy <= dx && dy <= dz)
+            normal = (local_center.y >= 0) ? axis_y * -1.0 : axis_y;
+        else
+            normal = (local_center.z >= 0) ? axis_z * -1.0 : axis_z;
+    }
+    else
+    {
+        normal = delta / distance;
     }
 
-    const linkit::Vector3 normal = delta / distance;
     const linkit::real penetration = sphere.radius - distance;
-    const linkit::Vector3 contact_point = sphere_transform.position + normal * (sphere.radius - 0.5f * penetration);
+    const linkit::Vector3 contact_point = sphere_transform.position + normal * (sphere.radius - penetration * 0.5);
 
     const CollisionContact contact(contact_point, normal, penetration);
     collision_data.add_contact(contact);
