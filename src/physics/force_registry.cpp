@@ -26,6 +26,8 @@ void ForceRegistry::update_forces(linkit::real dt)
 {
     for (auto& reg : registered_forces)
     {
-        reg.force_generator->update_force(*reg.obj, dt);
+        if (reg.obj->rb.get_awake()) {
+            reg.force_generator->update_force(*reg.obj, dt);
+        }
     }
 }
