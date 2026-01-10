@@ -1,0 +1,2 @@
+/usr/bin/ar qc librendering.a CMakeFiles/rendering.dir/camera.cpp.o CMakeFiles/rendering.dir/debug_drawer.cpp.o CMakeFiles/rendering.dir/engine_ui.cpp.o CMakeFiles/rendering.dir/light_source.cpp.o CMakeFiles/rendering.dir/mesh.cpp.o CMakeFiles/rendering.dir/model.cpp.o CMakeFiles/rendering.dir/renderer.cpp.o CMakeFiles/rendering.dir/shader.cpp.o CMakeFiles/rendering.dir/skybox.cpp.o
+/usr/bin/ranlib librendering.a

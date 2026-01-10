@@ -1,0 +1,12 @@
+{
+	"InstallScripts" : 
+	[
+		"/home/carlos/dev/vectra/build/cmake_install.cmake",
+		"/home/carlos/dev/vectra/build/external/linkit/cmake_install.cmake",
+		"/home/carlos/dev/vectra/build/external/imgui/cmake_install.cmake",
+		"/home/carlos/dev/vectra/build/src/rendering/cmake_install.cmake",
+		"/home/carlos/dev/vectra/build/src/physics/cmake_install.cmake",
+		"/home/carlos/dev/vectra/build/src/core/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

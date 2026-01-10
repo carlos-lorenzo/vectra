@@ -19,8 +19,8 @@ class GameObject
         GameObject();
         GameObject(const GameObject& other);
         GameObject& operator=(const GameObject& other);
-        GameObject(GameObject&&) noexcept = default;
-        GameObject& operator=(GameObject&&) noexcept = default;
+        GameObject(GameObject&&) noexcept;
+        GameObject& operator=(GameObject&&) noexcept;
 
         void set_collider_type(const std::string& tag);
         void set_shape(const std::string& shape);

@@ -21,6 +21,7 @@ GameObject::GameObject(const GameObject& other)
     if (other.collider)
     {
         collider = other.collider->clone();
+        collider->set_transform(&rb.transform);
     }
 }
 
@@ -31,6 +32,37 @@ GameObject& GameObject::operator=(const GameObject& other)
     model = other.model;
     shader = other.shader;
     collider = other.collider ? other.collider->clone() : nullptr;
+    if (collider)
+    {
+        collider->set_transform(&rb.transform);
+    }
+    return *this;
+}
+
+GameObject::GameObject(GameObject&& other) noexcept
+    : rb(std::move(other.rb)),
+      model(std::move(other.model)),
+      shader(std::move(other.shader)),
+      collider(std::move(other.collider))
+{
+    if (collider)
+    {
+        collider->set_transform(&rb.transform);
+    }
+}
+
+GameObject& GameObject::operator=(GameObject&& other) noexcept
+{
+    if (this == &other) return *this;
+    rb = std::move(other.rb);
+    model = std::move(other.model);
+    shader = std::move(other.shader);
+    collider = std::move(other.collider);
+
+    if (collider)
+    {
+        collider->set_transform(&rb.transform);
+    }
     return *this;
 }
 

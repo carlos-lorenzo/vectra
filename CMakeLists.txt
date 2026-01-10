@@ -48,6 +48,8 @@ set(SOURCES
         src/physics/collision_handler.cpp
         src/physics/colliders/collider_box.cpp
         src/physics/collider_primitive.cpp
+        src/rendering/engine_ui.cpp
+        src/core/engine.cpp
 
 )
 
@@ -85,6 +87,7 @@ add_custom_command(
 
 # Add this before add_executable
 add_subdirectory(external/linkit)
+add_subdirectory(external/imgui)
 add_subdirectory(src/rendering)
 add_subdirectory(src/physics)
 add_subdirectory(src/core)
@@ -100,6 +103,7 @@ target_link_libraries(${PROJECT_NAME}
         PRIVATE glfw
         PRIVATE glad
         PRIVATE glm::glm
+        PRIVATE imgui
         INTERFACE linkit
         PRIVATE rendering
         PRIVATE physics

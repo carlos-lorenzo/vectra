@@ -1,0 +1,1 @@
+/usr/bin/c++ -g -Wl,--dependency-file=CMakeFiles/test_linkit.dir/link.d CMakeFiles/test_linkit.dir/tests/test_main.cpp.o -o test_linkit
