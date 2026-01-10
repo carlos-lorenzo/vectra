@@ -29,7 +29,6 @@ class CollisionHandler
         void clear_contacts();
 
         std::vector<CollisionData> collisions;
-        linkit::real velocity_threshold = 1.0; // Threshold for restitution application
 
     private:
         // Helper structures for box-box collision

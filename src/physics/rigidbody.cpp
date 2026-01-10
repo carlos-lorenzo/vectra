@@ -14,7 +14,6 @@ Rigidbody::Rigidbody()
 
     velocity = linkit::Vector3(0.0, 0.0, 0.0);
     acceleration = linkit::Vector3(0.0f, 0.0f, 0.0f);
-    last_frame_acceleration = linkit::Vector3(0.0f, 0.0f, 0.0f);
 
     angular_velocity = linkit::Vector3(0.0f, 0.0f, 0.0f);
     angular_acceleration = linkit::Vector3(0.0f, 0.0f, 0.0f);
@@ -29,48 +28,7 @@ Rigidbody::Rigidbody()
     inverse_mass = (mass > 0.0f) ? (1.0f / mass) : 0.0f; // Handle infinite mass case
 
     linear_damping = 1.0f;
-    last_dt = 0.0f;
     has_moved = false;
-
-    // Sleep initialization
-    motion = 0; // or 10 * epsilon?
-    is_awake = true;
-    can_sleep = true;
-}
-
-void Rigidbody::set_awake(const bool awake)
-{
-    if (awake)
-    {
-        is_awake = true;
-        // Add a bit of motion to avoid it falling asleep immediately.
-        motion = 0.6f; // 2 * sleep_epsilon (0.3)
-    }
-    else
-    {
-        is_awake = false;
-        velocity = linkit::Vector3(0, 0, 0);
-        angular_velocity = linkit::Vector3(0, 0, 0);
-    }
-}
-
-bool Rigidbody::get_awake() const
-{
-    return is_awake;
-}
-
-void Rigidbody::set_can_sleep(const bool _can_sleep)
-{
-    can_sleep = _can_sleep;
-    if (!can_sleep && !is_awake)
-    {
-        set_awake(true);
-    }
-}
-
-bool Rigidbody::get_can_sleep() const
-{
-    return can_sleep;
 }
 
 void Rigidbody::clear_accumulators()
@@ -111,7 +69,6 @@ linkit::Matrix3 Rigidbody::get_inverse_inertia_tensor() const
 void Rigidbody::add_force(const linkit::Vector3& force)
 {
     accumulated_force += force;
-    set_awake(true);
 }
 
 void Rigidbody::add_force_at_world_point(const linkit::Vector3& force, const linkit::Vector3& point)
@@ -119,7 +76,6 @@ void Rigidbody::add_force_at_world_point(const linkit::Vector3& force, const lin
     accumulated_force += force;
     linkit::Vector3 lever_arm = point - transform.position;
     accumulated_torque += lever_arm % force;
-    set_awake(true);
 }
 
 void Rigidbody::add_force_at_local_point(const linkit::Vector3& force, const linkit::Vector3& point)
@@ -129,8 +85,7 @@ void Rigidbody::add_force_at_local_point(const linkit::Vector3& force, const lin
 
 void Rigidbody::compute_accelerations()
 {
-    last_frame_acceleration = accumulated_force * inverse_mass;
-    acceleration = last_frame_acceleration;
+    acceleration = accumulated_force * inverse_mass;
     angular_acceleration = get_inverse_inertia_tensor() * accumulated_torque;
 }
 
@@ -149,28 +104,16 @@ void Rigidbody::step_position(const linkit::real dt)
     //velocity *= linkit::real_pow(linear_damping, dt);
     if (velocity*velocity > linkit::REAL_EPSILON) has_moved = true;
     else has_moved = false;
-    transform.position += velocity * dt + 0.5 * acceleration * dt * dt;
-    last_dt = dt;
+    transform.position += velocity * dt;
 }
 
 void Rigidbody::step(const linkit::real dt)
 {
     if (has_infinite_mass()) return; // Object is immovable
 
-    if (!is_awake) return;
-
     compute_accelerations();
     step_position(dt);
     step_rotation(dt);
-
-    linkit::real current_motion = velocity * velocity + angular_velocity * angular_velocity;
-
-    linkit::real bias = linkit::real_pow(0.5, dt);
-    motion = bias * motion + (1 - bias) * current_motion;
-
-    constexpr linkit::real sleep_epsilon = 0.3f;
-    if (motion > 10 * sleep_epsilon) motion = 10 * sleep_epsilon;
-    if (motion < sleep_epsilon) set_awake(false);
 }
 
 bool Rigidbody::has_finite_mass() const

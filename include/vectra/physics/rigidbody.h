@@ -15,7 +15,6 @@ class Rigidbody
         Transform transform;
         linkit::Vector3 velocity;
         linkit::Vector3 acceleration;
-        linkit::Vector3 last_frame_acceleration;
 
         linkit::Vector3 angular_velocity;
         linkit::Vector3 angular_acceleration;
@@ -28,12 +27,6 @@ class Rigidbody
         linkit::Matrix3 _local_inverse_inertia_tensor;
 
         linkit::real linear_damping;
-        linkit::real last_dt;
-
-        // Sleep parameters
-        linkit::real motion;
-        bool is_awake;
-        bool can_sleep;
 
 
         Rigidbody();
@@ -44,12 +37,6 @@ class Rigidbody
         linkit::Vector3 local_to_world(const linkit::Vector3& local_point);
         linkit::Vector3 world_to_local(const linkit::Vector3& world_point);
         [[nodiscard]] linkit::Matrix3 get_inverse_inertia_tensor() const;
-
-        void set_awake(bool awake = true);
-        [[nodiscard]] bool get_awake() const;
-        void set_can_sleep(bool can_sleep = true);
-        [[nodiscard]] bool get_can_sleep() const;
-
         void add_force(const linkit::Vector3& force);
         // Will add a torque based on force applied at a point in world space
         void add_force_at_world_point(const linkit::Vector3& force, const linkit::Vector3& point);
@@ -67,4 +54,3 @@ class Rigidbody
 
 
 #endif //VECTRA_RIGIDBODY_H
-

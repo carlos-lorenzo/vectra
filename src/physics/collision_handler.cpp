@@ -406,41 +406,11 @@ void CollisionHandler::solve_contacts()
             // Separating velocity along the normal (rate at which objects separate)
             // closing_velocity = v0 - v1, so separating = (v1 - v0) · n = -closing · n
             linkit::real separating_velocity = -(closing_velocity * contact.collision_normal);
-            //
-            // // If objects are already separating, skip
+
+            // If objects are already separating, skip
             if (separating_velocity > 0) continue;
-            //
-            // linkit::real desired_delta_velocity = -separating_velocity * (1 + collision.restitution);
-            // 1. Calculate the velocity contributed by acceleration this frame
-            linkit::real velocity_from_acc = 0;
-            const linkit::real dt = collision.objects[0]->rb.last_dt;
-            // Projected acceleration of body 0
-            velocity_from_acc += (collision.objects[0]->rb.last_frame_acceleration * contact.collision_normal) * dt;
 
-            // Subtract projected acceleration of body 1 (to get relative acceleration velocity)
-            if (collision.objects[1] && collision.objects[1]->rb.has_finite_mass()) {
-                velocity_from_acc -= (collision.objects[1]->rb.last_frame_acceleration * contact.collision_normal) * dt;
-            }
-
-            // 2. Modify the target velocity calculation
-            // Instead of: -separating_velocity * (1 + restitution)
-            // We use the book's formula:
-            linkit::real applied_restitution = collision.restitution;
-            linkit::real desired_delta_velocity = -separating_velocity;
-
-            // The book treats 'velocity_from_acc' as a component to be REMOVED
-            // from the closing speed before applying restitution.
-            if (linkit::real_abs(separating_velocity) < velocity_threshold) {
-                applied_restitution = 0.0f;
-            }
-
-            // Subtract the acceleration-induced part from the total separating velocity
-            // to find the 'true' impact velocity.
-            linkit::real true_impact_velocity = separating_velocity - velocity_from_acc;
-
-            if (true_impact_velocity < 0) {
-                desired_delta_velocity += applied_restitution * true_impact_velocity;
-            }
+            linkit::real desired_delta_velocity = -separating_velocity * (1 + collision.restitution);
 
             // Avoid division by zero
             if (delta_velocity < linkit::REAL_EPSILON) continue;
@@ -494,22 +464,6 @@ void CollisionHandler::resolve_interpretations()
     if (collisions.empty()) return;
     for (auto &collision : collisions)
     {
-        GameObject* obj0 = collision.objects[0];
-        GameObject* obj1 = collision.objects[1];
-
-        if (obj0 == nullptr || obj1 == nullptr) continue;
-
-        bool awake0 = obj0->rb.get_awake();
-        bool awake1 = obj1->rb.get_awake();
-
-        if (awake0 ^ awake1)
-        {
-            if (awake0) obj1->rb.set_awake(true);
-            else obj0->rb.set_awake(true);
-        }
-
-        if (!obj0->rb.get_awake() && !obj1->rb.get_awake()) continue;
-
         for (auto& contact : collision.get_contacts())
         {
             linkit::real angular_inertia_contact[2];
