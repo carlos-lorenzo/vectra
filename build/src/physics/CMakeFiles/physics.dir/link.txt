@@ -1,2 +1,0 @@
-/usr/bin/ar qc libphysics.a CMakeFiles/physics.dir/collider_primitive.cpp.o CMakeFiles/physics.dir/collision_contact.cpp.o CMakeFiles/physics.dir/collision_data.cpp.o CMakeFiles/physics.dir/collision_handler.cpp.o CMakeFiles/physics.dir/force_registry.cpp.o CMakeFiles/physics.dir/rigidbody.cpp.o CMakeFiles/physics.dir/transform.cpp.o CMakeFiles/physics.dir/colliders/collider_sphere.cpp.o CMakeFiles/physics.dir/colliders/collider_box.cpp.o
-/usr/bin/ranlib libphysics.a

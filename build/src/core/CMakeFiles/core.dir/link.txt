@@ -1,2 +1,0 @@
-/usr/bin/ar qc libcore.a CMakeFiles/core.dir/engine.cpp.o CMakeFiles/core.dir/gameobject.cpp.o CMakeFiles/core.dir/scene.cpp.o
-/usr/bin/ranlib libcore.a
