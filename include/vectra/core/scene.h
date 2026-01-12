@@ -11,6 +11,7 @@
 #include "vectra/rendering/light_source.h"
 #include "vectra/rendering/skybox.h"
 #include "vectra/core/gameobject.h"
+#include "vectra/core/scene_snapshot.h"
 #include "vectra/physics/force_registry.h"
 #include "vectra/physics/BVHNode.h"
 #include "vectra/physics/bounding_volumes/bounding_sphere.h"
@@ -36,6 +37,7 @@ public:
     void add_game_object(GameObject obj);
     void add_light_source(const LightSource& obj);
     void step(linkit::real dt);
+    SceneSnapshot create_snapshot() const;
 
 private:
     void update_bvh();

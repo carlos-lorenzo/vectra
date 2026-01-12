@@ -11,7 +11,7 @@ class EngineUI
 {
 public:
     static void initialize(GLFWwindow* window);
-    void draw(EngineState& state, Scene& scene);
+    void draw(EngineState& state);
     void cleanup();
 };
 #endif //VECTRA_ENGINE_UI_H

@@ -157,22 +157,6 @@ Renderer::Renderer(const int width, const int height)
     glEnable(GL_CULL_FACE);
     glViewport(0, 0, width, height);
 
-
-
-
-
-    // // Setup Dear ImGui context
-    // IMGUI_CHECKVERSION();
-    // ImGui::CreateContext();
-    // ImGuiIO& io = ImGui::GetIO();
-    // io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-    // io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-    // io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // IF using Docking Branch
-    //
-    // // Setup Platform/Renderer backends
-    // ImGui_ImplGlfw_InitForOpenGL(pWindow_, true);          // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
-    // ImGui_ImplOpenGL3_Init();
-
     glfwSetInputMode(pWindow_, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     if (glfwRawMouseMotionSupported())
         glfwSetInputMode(pWindow_, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
@@ -201,7 +185,7 @@ void Renderer::render_scene_frame(Scene& scene, const glm::mat4& projection_matr
 
 
     for (auto obj : scene.game_objects) {
-        glm::mat4 model_matrix = Camera::get_model_matrix(obj);
+        glm::mat4 model_matrix = Camera::get_model_matrix(obj.rb.transform);
         draw_game_object(obj, model_matrix, view_matrix, projection_matrix, scene);
     }
 
@@ -211,6 +195,30 @@ void Renderer::render_scene_frame(Scene& scene, const glm::mat4& projection_matr
     // }
 
     scene.skybox.draw(view_matrix, projection_matrix);
+}
+
+void Renderer::render_snapshot_frame(Camera &camera, Skybox &skybox, const SceneSnapshot& snapshot, const glm::mat4& projection_matrix, const linkit::real dt)
+{
+    process_input(pWindow_, camera, dt);
+
+    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glm::mat4 view_matrix = camera.get_view_matrix();
+    glm::vec3 camera_position = vector3_to_vec3(camera.transform.position);
+
+    for (auto obj : snapshot.objects) {
+        glm::mat4 model_matrix = Camera::get_model_matrix(obj.rb.transform);
+        draw_game_object(obj, model_matrix, view_matrix, projection_matrix, camera_position);
+    }
+
+    // Visualise BVH
+    // if (scene.bvh_root) {
+    //     debug_drawer_->draw_bvh(scene.bvh_root.get(), view_matrix, projection_matrix);
+    // }
+
+    skybox.draw(view_matrix, projection_matrix);
+    return;
 }
 
 
@@ -221,95 +229,7 @@ void Renderer::end_frame()
     glfwSwapBuffers(pWindow_);
 }
 
-void Renderer::draw_frame(Scene &scene, const glm::mat4 &projection_matrix, double dt)
-{
 
-    glfwPollEvents();
-
-    // Start the Dear ImGui frame
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
-    ImGui::ShowDemoWindow(); // Show demo window! :)
-
-
-    process_input(pWindow_, scene.camera, dt);
-
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    glm::mat4 view_matrix = scene.camera.get_view_matrix();
-
-
-    for (auto obj : scene.game_objects) {
-        glm::mat4 model_matrix = Camera::get_model_matrix(obj);
-        draw_game_object(obj, model_matrix, view_matrix, projection_matrix, scene);
-    }
-
-    // Visualise BVH
-    // if (scene.bvh_root) {
-    //     debug_drawer_->draw_bvh(scene.bvh_root.get(), view_matrix, projection_matrix);
-    // }
-
-    scene.skybox.draw(view_matrix, projection_matrix);
-
-    // Rendering
-    ImGui::Render();
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-    glfwSwapBuffers(pWindow_);
-}
-
-
-void Renderer::play_scene(Scene &scene)
-{
-    glfwSetFramebufferSizeCallback(pWindow_, framebuffer_size_callback);
-    double t = 0.0;
-    const double dt_phys = 1.0 / simulation_frequency_;
-
-    double currentTime = glfwGetTime();
-    double accumulator = 0.0;
-
-    const double min_frame_time = 1.0 / target_fps_;
-    glm::mat4 projection_matrix = scene.camera.get_projection_matrix();
-
-    // No idea why this is needed
-    scene.skybox.skybox_shader.use();
-    scene.skybox.skybox_shader.set_int("skybox", 0);
-
-
-
-    while (!glfwWindowShouldClose(pWindow_)) {
-        double new_time = glfwGetTime();
-        double frame_time = new_time - currentTime;
-        currentTime = new_time;
-
-        // FPS counter
-        static double fps_timer = 0.0; static int fps_frames = 0;
-        fps_timer += frame_time; fps_frames++;
-        if (fps_timer >= 1.0) {
-            std::string title = "Vectra - FPS: " + std::to_string(fps_frames);
-            glfwSetWindowTitle(pWindow_, title.c_str());
-            fps_timer -= 1.0; fps_frames = 0;
-        }
-
-        accumulator += frame_time;
-        while (accumulator >= dt_phys) {
-            scene.step(static_cast<linkit::real>(dt_phys));
-            accumulator -= dt_phys;
-            t += dt_phys;
-        }
-
-        draw_frame(scene, projection_matrix, frame_time);
-
-        double end_frame_time = glfwGetTime();
-        double time_to_wait = min_frame_time - (end_frame_time - new_time);
-        if (time_to_wait > 0.0) {
-            std::this_thread::sleep_for(std::chrono::duration<double>(time_to_wait));
-        }
-    }
-    cleanup(scene);
-}
 
 void Renderer::cleanup(const Scene &scene)
 {
@@ -317,9 +237,7 @@ void Renderer::cleanup(const Scene &scene)
     {
         obj.shader.delete_program();
     }
-    // ImGui_ImplOpenGL3_Shutdown();
-    // ImGui_ImplGlfw_Shutdown();
-    // ImGui::DestroyContext();
+
 
     glfwTerminate();
     glfwDestroyWindow(pWindow_);
@@ -351,5 +269,26 @@ void Renderer::draw_game_object(GameObject& obj, glm::mat4 model_matrix, glm::ma
         obj.shader.set_vec3("light_position", light_position);
         obj.shader.set_vec3("light_colour", light_colour);
     }
+    obj.model.draw(obj.shader);
+}
+
+void Renderer::draw_game_object(GameObject& obj, glm::mat4 model_matrix, glm::mat4 view_matrix,
+    glm::mat4 projection_matrix, glm::vec3 camera_position)
+{
+    obj.shader.use();
+    obj.shader.set_mat4("model", model_matrix);
+    obj.shader.set_mat4("view", view_matrix);
+    obj.shader.set_mat4("projection", projection_matrix);
+    obj.shader.set_vec3("camera_position", camera_position);
+
+
+    glm::vec3 light_position = glm::vec3(0.0f);
+    glm::vec3 light_colour = glm::vec3(1.0f);
+    obj.shader.set_vec3("light_position", light_position);
+
+    obj.shader.set_vec3("light_position", light_position);
+    obj.shader.set_vec3("light_colour", light_colour);
+
+
     obj.model.draw(obj.shader);
 }

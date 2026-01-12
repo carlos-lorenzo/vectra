@@ -131,14 +131,30 @@ void Scene::step(const linkit::real dt)
         obj.rb.step(dt);
     }
 
-    unsigned int limit = 100;
+    unsigned int limit = 500; // Max number of potential contacts to consider. Will be passed from engine settings later.
     std::vector<PotentialContact> possible_contacts;
     possible_contacts = bvh_root->potential_contacts_inside(possible_contacts, limit);
-    //std::cout << "Number of potential contacts: " << possible_contacts.size() << std::endl;
     collision_handler.narrow_phase(possible_contacts);
     collision_handler.solve_contacts();
     collision_handler.resolve_interpretations();
 
 
     collision_handler.clear_contacts();
+}
+
+SceneSnapshot Scene::create_snapshot() const
+{
+    SceneSnapshot snapshot;
+    for (const auto& obj : game_objects)
+    {
+        snapshot.objects.push_back(obj);
+        snapshot.object_transforms.push_back(obj.rb.transform);
+    }
+
+    for (const auto& light : light_sources)
+    {
+        snapshot.light_sources.push_back(light);
+    }
+
+    return snapshot;
 }

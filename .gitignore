@@ -44,3 +44,10 @@
 copilot.*
 .xml
 /.idea/
+
+
+# builds
+/build/
+/dist/
+cmake-build-debug
+cmake-build-release

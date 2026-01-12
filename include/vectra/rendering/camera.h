@@ -26,5 +26,6 @@ class Camera
         [[nodiscard]] glm::mat4 get_view_matrix();
         [[nodiscard]] glm::mat4 get_projection_matrix() const;
         static glm::mat4 get_model_matrix(const GameObject &obj);
+        static glm::mat4 get_model_matrix(const Transform &obj_transform);
 };
 #endif //VECTRA_CAMERA_H

@@ -3,8 +3,10 @@
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+
 #include "vectra/rendering/debug_drawer.h"
 #include "vectra/core/scene.h"
+#include "vectra/core/scene_snapshot.h"
 
 class Renderer
 {
@@ -14,15 +16,16 @@ class Renderer
         float target_fps_ = 144.0f; // Target frames per second for rendering
 
         std::unique_ptr<DebugDrawer> debug_drawer_; // Add debug drawer
-        void draw_frame(Scene &scene, const glm::mat4 &projection_matrix, double dt);
     public:
         Renderer(int width, int height);
         [[nodiscard]] GLFWwindow* get_window() const { return pWindow_; }
         void begin_frame();
         void render_scene_frame(Scene &scene, const glm::mat4 &projection_matrix, linkit::real dt);
+        void render_snapshot_frame(Camera &camera, Skybox &skybox, const SceneSnapshot &snapshot, const glm::mat4 &projection_matrix, linkit::real dt);
         void end_frame();
-        void play_scene(Scene &scene);
+
         void cleanup(const Scene& scene);
         static void draw_game_object(::GameObject& obj, glm::mat4 model_matrix, glm::mat4 view_matrix, glm::mat4 projection_matrix, Scene& scene);
+        void draw_game_object(::GameObject& obj, glm::mat4 model_matrix, glm::mat4 view_matrix, glm::mat4 projection_matrix, glm::vec3 camera_position);
 };
 #endif //VECTRA_RENDERER_H

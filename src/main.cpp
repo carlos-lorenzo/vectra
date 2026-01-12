@@ -107,9 +107,10 @@ int main()
     // }
     //
     // scene_renderer.play_scene(scene);
-    Engine engine;
-    engine.load_scene();
-    engine.run();
+    Engine* engine = new Engine();
+    engine->load_scene();
+    engine->run();
+    delete engine;
     return 0;
 }
 
