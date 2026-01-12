@@ -10,5 +10,5 @@ target_include_directories(rendering
         ${CMAKE_CURRENT_SOURCE_DIR}/../../include
 )
 target_link_libraries(rendering PUBLIC linkit)
-target_link_libraries(rendering PRIVATE glm)
+target_link_libraries(rendering PRIVATE glm::glm)
 target_link_libraries(rendering PRIVATE imgui)

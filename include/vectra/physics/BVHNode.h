@@ -72,7 +72,7 @@ public:
     }
 
 
-    std::vector<PotentialContact> potential_contacts_inside(std::vector<PotentialContact> contacts, unsigned int limit)
+    std::vector<PotentialContact> potential_contacts_inside(std::vector<PotentialContact> contacts, unsigned int limit = 500)
     {
         if (contacts.size() >= limit) return contacts;
         if (is_leaf()) return contacts;

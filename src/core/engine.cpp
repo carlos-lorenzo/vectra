@@ -99,7 +99,7 @@ void Engine::load_scene()
 
 
     // Add spheres inside the box
-    int n_spheres = 5;
+    int n_spheres = 30;
     linkit::Vector3 gravity = linkit::Vector3(0, -9.8, 0.0);
 
     for (int i = 0; i < n_spheres; i++)
@@ -119,6 +119,7 @@ void Engine::load_scene()
         // Apply gravity to each sphere (index offset by 6 for the 6 box pieces: floor + 4 walls + ceiling)
         scene->force_registry.add(&scene->game_objects[6 + i], std::make_shared<SimpleGravity>(gravity));
     }
+
     renderer->setup_from_scene(*scene);
 
 }

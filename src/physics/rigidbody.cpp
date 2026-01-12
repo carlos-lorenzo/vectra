@@ -104,7 +104,7 @@ void Rigidbody::step_position(const linkit::real dt)
     //velocity *= linkit::real_pow(linear_damping, dt);
     if (velocity*velocity > linkit::REAL_EPSILON) has_moved = true;
     else has_moved = false;
-    transform.position += velocity * dt;
+    transform.position += velocity * dt + 0.5 * acceleration * dt * dt;
 }
 
 void Rigidbody::step(const linkit::real dt)

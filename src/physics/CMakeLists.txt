@@ -14,4 +14,4 @@ target_include_directories(physics
         ${CMAKE_CURRENT_SOURCE_DIR}/../../include
 )
 target_link_libraries(physics PUBLIC linkit)
-target_link_libraries(physics PRIVATE glm)
+target_link_libraries(physics PRIVATE glm::glm)

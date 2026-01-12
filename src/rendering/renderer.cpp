@@ -167,6 +167,7 @@ void Renderer::initialize_window()
     }
 
     glfwMakeContextCurrent(pWindow_);
+    glfwSwapInterval(state_->enable_vsync ? 1 : 0);
     if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress))) {
         std::cout << "Failed to initialize GLAD" << std::endl;
         glfwTerminate();

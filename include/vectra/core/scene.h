@@ -38,6 +38,7 @@ public:
     void add_game_object(GameObject obj);
     void add_light_source(const LightSource& obj);
     void step(linkit::real dt);
+
     SceneSnapshot create_snapshot() const;
 
 private:

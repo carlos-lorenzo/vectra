@@ -228,7 +228,7 @@ void EngineUI::draw_toolbar(EngineState& state)
 
         // Simulation speed slider
         ImGui::SetNextItemWidth(150.0f);
-        float sim_speed = static_cast<float>(state.simulation_speed);
+        auto sim_speed = static_cast<float>(state.simulation_speed);
         ImGui::SliderFloat("##Speed", &sim_speed, 0.0f, 5.0f, "%.2fx");
         state.simulation_speed = static_cast<linkit::real>(sim_speed);
 
