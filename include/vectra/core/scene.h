@@ -31,6 +31,7 @@ class Scene
         CollisionHandler collision_handler;
 private:
     std::unordered_map<GameObject*, BVHNode<BoundingSphere>*> bvh_node_map;
+    std::unordered_map<std::string, int> name_counters_; // For auto-generating object names
 
 
 public:

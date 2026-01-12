@@ -1,5 +1,6 @@
 #include <vector>
 #include <deque>
+#include <unordered_map>
 #include "vectra/core/scene.h"
 
 #include <iostream>
@@ -21,6 +22,7 @@ Scene::Scene()
     bvh_root = nullptr;
     bvh_node_map = std::unordered_map<GameObject*, BVHNode<BoundingSphere>*>();
     collision_handler = CollisionHandler();
+    name_counters_ = std::unordered_map<std::string, int>();
 }
 
 // In Scene class (private):
@@ -46,6 +48,14 @@ void Scene::rebuild_bvh_node_map()
 // add_game_object
 void Scene::add_game_object(GameObject obj)
 {
+    // Auto-generate name if not set
+    if (obj.name.empty())
+    {
+        int& counter = name_counters_[obj.model_name];
+        obj.name = obj.model_name + "_" + std::to_string(counter);
+        counter++;
+    }
+
     if (obj.get_collider().tag == "ColliderBox")
     {
         obj.rb.set_inverse_inertia_tensor(obj.rb.cuboid_inertia_tensor());
@@ -148,6 +158,7 @@ SceneSnapshot Scene::create_snapshot() const
     for (const auto& obj : game_objects)
     {
         GameObjectSnapshot obj_snapshot;
+        obj_snapshot.name = obj.name;
         obj_snapshot.model_name = obj.model_name;
         obj_snapshot.transform = obj.rb.transform;
         snapshot.object_snapshots.push_back(obj_snapshot);

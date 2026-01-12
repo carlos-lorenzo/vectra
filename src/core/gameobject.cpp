@@ -14,6 +14,7 @@ GameObject::GameObject()
 
 GameObject::GameObject(const GameObject& other)
     : rb(other.rb),
+      name(other.name),
       model_name(other.model_name)
 {
     if (other.collider)
@@ -27,6 +28,7 @@ GameObject& GameObject::operator=(const GameObject& other)
 {
     if (this == &other) return *this;
     rb = other.rb;
+    name = other.name;
     model_name = other.model_name;
     collider = other.collider ? other.collider->clone() : nullptr;
     if (collider)
@@ -38,6 +40,7 @@ GameObject& GameObject::operator=(const GameObject& other)
 
 GameObject::GameObject(GameObject&& other) noexcept
     : rb(std::move(other.rb)),
+      name(std::move(other.name)),
       model_name(std::move(other.model_name)),
       collider(std::move(other.collider))
 {
@@ -51,6 +54,7 @@ GameObject& GameObject::operator=(GameObject&& other) noexcept
 {
     if (this == &other) return *this;
     rb = std::move(other.rb);
+    name = std::move(other.name);
     model_name = std::move(other.model_name);
     collider = std::move(other.collider);
 

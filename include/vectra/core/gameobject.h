@@ -12,6 +12,7 @@ class GameObject
 {
     public:
         Rigidbody rb;
+        std::string name;       // Display name for hierarchy (auto-generated if empty)
         std::string model_name;
         std::unique_ptr<ColliderPrimitive> collider; // nullable, owns ColliderSphere/ColliderBox
 

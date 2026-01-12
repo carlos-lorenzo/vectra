@@ -8,6 +8,7 @@
 #include "vectra/rendering/debug_drawer.h"
 #include "vectra/rendering/shader.h"
 #include "vectra/rendering/model.h"
+#include "vectra/rendering/framebuffer.h"
 #include "vectra/core/scene.h"
 #include "vectra/core/scene_snapshot.h"
 
@@ -20,9 +21,11 @@ class Renderer
         std::unordered_map<std::string, Model> model_cache_; // Model cache
         std::unique_ptr<Shader> model_shader_; // Add shader
         Camera camera_; // Camera for rendering (set by scene)
-        std::unique_ptr<Skybox> skybox_; // Skybox for rendering (set by scene) - must be initialized after OpenGL context
         std::vector<LightSource> light_sources; // Light sources in the scene (set by scene)
+        std::unique_ptr<Skybox> skybox_; // Skybox for rendering (set by scene) - must be initialized after OpenGL context
         glm::mat4 projection_matrix_{};
+        std::unique_ptr<Framebuffer> scene_fbo_; // Framebuffer for scene rendering
+public:
 
 
     public:
@@ -30,9 +33,13 @@ class Renderer
         void initialize_window();
         void setup_from_scene(const Scene& scene);
         [[nodiscard]] GLFWwindow* get_window() const { return pWindow_; }
+        void use_skybox();
         static void begin_frame();
         void render_scene_frame(Scene &scene, linkit::real dt);
         void render_snapshot_frame(Skybox &skybox, const SceneSnapshot &snapshot, linkit::real dt);
+        void render_to_framebuffer(const SceneSnapshot &snapshot, linkit::real dt);
+        void resize_framebuffer(int width, int height);
+        [[nodiscard]] GLuint get_scene_texture_id() const;
         void end_frame();
 
         void cleanup(const Scene& scene);

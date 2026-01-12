@@ -14,6 +14,7 @@
 
 
 #include "vectra/rendering/renderer.h"
+#include "vectra/rendering/framebuffer.h"
 
 #include "camera.h"
 #include "utils.h"
@@ -25,7 +26,7 @@ void framebuffer_size_callback(GLFWwindow* window, const int width, const int he
 }
 
 
-static void process_input(GLFWwindow* window, Camera& camera, const double dt)
+static void process_input(GLFWwindow* window, Camera& camera, const double dt, bool scene_view_focused)
 {
     // Read direct mouse state instead of using external bool
     bool is_captured = glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED;
@@ -37,27 +38,29 @@ static void process_input(GLFWwindow* window, Camera& camera, const double dt)
         if (glfwRawMouseMotionSupported())
             glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_FALSE);
 
-        // Let ImGui manage the cursor again
-        ImGui::GetIO().ConfigFlags &= ~ImGuiConfigFlags_NoMouseCursorChange;
+        // Re-enable ImGui mouse input
+        ImGuiIO& io = ImGui::GetIO();
+        io.ConfigFlags &= ~ImGuiConfigFlags_NoMouseCursorChange;
+        io.ConfigFlags &= ~ImGuiConfigFlags_NoMouse;
 
         is_captured = false;
     }
 
-    // Handle gaining focus (Click inside window)
-    if (!is_captured && glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+    // Handle gaining focus (Click inside Scene View window)
+    // When scene_view_focused is true, we're hovering and focused on the Scene View,
+    // so we should capture mouse even though WantCaptureMouse is true (it's our window)
+    if (!is_captured && scene_view_focused && glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
     {
-        // Only capture if we are NOT clicking on an ImGui window
-        if (!ImGui::GetIO().WantCaptureMouse)
-        {
-            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-            if (glfwRawMouseMotionSupported())
-                glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        if (glfwRawMouseMotionSupported())
+            glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
 
-            // Prevent ImGui from showing the cursor or changing its shape
-            ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
+        // Disable ImGui mouse input entirely while camera is captured
+        ImGuiIO& io = ImGui::GetIO();
+        io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
+        io.ConfigFlags |= ImGuiConfigFlags_NoMouse;
 
-            is_captured = true;
-        }
+        is_captured = true;
     }
 
     // State tracking for smooth mouse transition
@@ -141,6 +144,8 @@ Renderer::Renderer(EngineState* state)
     camera_ = Camera();
     projection_matrix_ = camera_.get_projection_matrix();
 
+    // Create framebuffer for scene rendering
+    scene_fbo_ = std::make_unique<Framebuffer>(state_->scene_view_width, state_->scene_view_height);
 
     model_shader_ = std::make_unique<Shader>("resources/shaders/model.vert", "resources/shaders/phong.frag");
     model_cache_.emplace("cube", Model("resources/models/primitives/cube.obj", false));
@@ -173,9 +178,8 @@ void Renderer::initialize_window()
     glEnable(GL_CULL_FACE);
     glViewport(0, 0, state_->window_width, state_->window_height);
 
-    glfwSetInputMode(pWindow_, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    if (glfwRawMouseMotionSupported())
-        glfwSetInputMode(pWindow_, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
+    // Start with normal cursor (not captured) - user clicks scene view to capture
+    glfwSetInputMode(pWindow_, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
     debug_drawer_ = std::make_unique<DebugDrawer>();
     glfwSetFramebufferSizeCallback(pWindow_, framebuffer_size_callback);
@@ -189,6 +193,12 @@ void Renderer::setup_from_scene(const Scene& scene)
 
 }
 
+void Renderer::use_skybox()
+{
+    skybox_->skybox_shader.use();
+    skybox_->skybox_shader.set_int("skybox", 0);
+}
+
 void Renderer::begin_frame()
 {
     glfwPollEvents();
@@ -196,7 +206,7 @@ void Renderer::begin_frame()
 
 void Renderer::render_scene_frame(Scene& scene, linkit::real dt)
 {
-    process_input(pWindow_, scene.camera, dt);
+    process_input(pWindow_, scene.camera, dt, state_->scene_view_focused);
 
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -219,7 +229,7 @@ void Renderer::render_scene_frame(Scene& scene, linkit::real dt)
 
 void Renderer::render_snapshot_frame(Skybox &skybox, const SceneSnapshot& snapshot, const linkit::real dt)
 {
-    process_input(pWindow_, camera_, dt);
+    process_input(pWindow_, camera_, dt, state_->scene_view_focused);
 
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -227,13 +237,67 @@ void Renderer::render_snapshot_frame(Skybox &skybox, const SceneSnapshot& snapsh
     glm::mat4 view_matrix = camera_.get_view_matrix();
     glm::vec3 camera_position = vector3_to_vec3(camera_.transform.position);
 
-    for (const auto& [model_name, transform] : snapshot.object_snapshots) {
-        glm::mat4 model_matrix = Camera::get_model_matrix(transform);
+    for (const auto& obj_snapshot : snapshot.object_snapshots) {
+        glm::mat4 model_matrix = Camera::get_model_matrix(obj_snapshot.transform);
 
-        draw_game_object(model_name, model_matrix, view_matrix, projection_matrix_, camera_position);
+        draw_game_object(obj_snapshot.model_name, model_matrix, view_matrix, projection_matrix_, camera_position);
     }
 
     skybox_->draw(view_matrix, projection_matrix_);
+}
+
+void Renderer::render_to_framebuffer(const SceneSnapshot& snapshot, const linkit::real dt)
+{
+    process_input(pWindow_, camera_, dt, state_->scene_view_focused);
+
+    // Resize framebuffer if needed
+    resize_framebuffer(state_->scene_view_width, state_->scene_view_height);
+
+    // Update projection matrix for the new aspect ratio
+    float aspect = static_cast<float>(state_->scene_view_width) / static_cast<float>(state_->scene_view_height);
+    projection_matrix_ = glm::perspective(
+        glm::radians(static_cast<float>(camera_.fov)),
+        aspect,
+        static_cast<float>(camera_.nearPlane),
+        static_cast<float>(camera_.farPlane)
+    );
+
+    // Bind framebuffer and render scene
+    scene_fbo_->bind();
+
+    glClearColor(0.18f, 0.18f, 0.22f, 1.0f);  // Dracula background
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glm::mat4 view_matrix = camera_.get_view_matrix();
+    glm::vec3 camera_position = vector3_to_vec3(camera_.transform.position);
+
+    for (const auto& obj_snapshot : snapshot.object_snapshots) {
+        glm::mat4 model_matrix = Camera::get_model_matrix(obj_snapshot.transform);
+        draw_game_object(obj_snapshot.model_name, model_matrix, view_matrix, projection_matrix_, camera_position);
+    }
+
+    skybox_->draw(view_matrix, projection_matrix_);
+
+    // Unbind framebuffer - return to default
+    Framebuffer::unbind();
+
+    // Restore viewport to window size
+    int width, height;
+    glfwGetFramebufferSize(pWindow_, &width, &height);
+    glViewport(0, 0, width, height);
+}
+
+void Renderer::resize_framebuffer(int width, int height)
+{
+    if (scene_fbo_ && width > 0 && height > 0)
+    {
+        scene_fbo_->resize(width, height);
+    }
+}
+
+GLuint Renderer::get_scene_texture_id() const
+{
+    return scene_fbo_ ? scene_fbo_->get_texture_id() : 0;
 }
 
 

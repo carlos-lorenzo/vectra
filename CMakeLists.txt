@@ -139,6 +139,14 @@ add_custom_command(
         COMMENT "Copying texture files to build directory"
 )
 
+add_custom_command(
+        TARGET ${PROJECT_NAME} PRE_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_SOURCE_DIR}/resources/fonts/
+        ${CMAKE_BINARY_DIR}/resources/fonts/
+        COMMENT "Copying font files to build directory"
+)
+
 
 # Add this before add_executable
 add_subdirectory(external/linkit)

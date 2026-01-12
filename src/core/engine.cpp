@@ -132,10 +132,8 @@ void Engine::run_single_thread()
     linkit::real accumulator = 0.0;
 
     const linkit::real min_frame_time = 1.0 / state_.target_fps;
-    // No idea why this is needed
-    scene->skybox.skybox_shader.use();
-    scene->skybox.skybox_shader.set_int("skybox", 0);
 
+    renderer->use_skybox();
     auto window = renderer->get_window();
 
 
@@ -148,7 +146,7 @@ void Engine::run_single_thread()
         static double fps_timer = 0.0; static int fps_frames = 0;
         fps_timer += frame_time; fps_frames++;
         if (fps_timer >= 1.0) {
-            std::string title = "Vectra - FPS: " + std::to_string(fps_frames);
+            std::string title = "Vectra Engine";
             glfwSetWindowTitle(window, title.c_str());
             fps_timer -= 1.0; fps_frames = 0;
         }
@@ -160,10 +158,19 @@ void Engine::run_single_thread()
             t += dt_phys;
         }
 
+        // Clear the main window
         Renderer::begin_frame();
-        ui->draw(state_);
-        renderer->render_scene_frame(*scene, static_cast<linkit::real>(frame_time));
+
+        // Create scene snapshot
+        auto scene_snapshot = scene->create_snapshot();
+
+        // Render scene to framebuffer
+        renderer->render_to_framebuffer(scene_snapshot, static_cast<linkit::real>(frame_time));
+
+        // Draw UI with framebuffer texture
+        ui->draw(state_, scene_snapshot, renderer->get_scene_texture_id());
         ui->end_frame();
+
         renderer->end_frame();
 
         double end_frame_time = glfwGetTime();
@@ -203,7 +210,7 @@ void Engine::physics_thread_func()
         while (accumulator >= dt)
         {
             if (!state_.is_paused) {
-                scene->step(dt);
+                scene->step(dt * state_.simulation_speed);
             }
             accumulator -= dt;
         }
@@ -222,9 +229,7 @@ void Engine::rendering_thread_func()
 
     const linkit::real min_frame_time = 1.0 / state_.target_fps;
 
-    // No idea why this is needed
-    scene->skybox.skybox_shader.use();
-    scene->skybox.skybox_shader.set_int("skybox", 0);
+    renderer->use_skybox();
 
     auto window = renderer->get_window();
 
@@ -237,10 +242,16 @@ void Engine::rendering_thread_func()
         SceneSnapshot scene_snapshot;
         render_queue_.pop(scene_snapshot);
 
+        // Clear the main window
         Renderer::begin_frame();
-        ui->draw(state_);
-        renderer->render_snapshot_frame(scene->skybox, scene_snapshot, static_cast<linkit::real>(frame_time));
+
+        // Render scene to framebuffer
+        renderer->render_to_framebuffer(scene_snapshot, static_cast<linkit::real>(frame_time));
+
+        // Draw UI with framebuffer texture
+        ui->draw(state_, scene_snapshot, renderer->get_scene_texture_id());
         ui->end_frame();
+
         renderer->end_frame();
 
         double end_frame_time = glfwGetTime();
