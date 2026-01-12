@@ -19,11 +19,10 @@
 Engine::Engine() : render_queue_()
 {
     state_ = EngineState();
-    renderer = std::make_unique<Renderer>(state_.window_width, state_.window_height);
+    renderer = std::make_unique<Renderer>(&state_);
     scene = std::make_unique<Scene>();
     ui = std::make_unique<EngineUI>();
     EngineUI::initialize(renderer->get_window());
-    camera = Camera();
 
 }
 
@@ -100,7 +99,7 @@ void Engine::load_scene()
 
 
     // Add spheres inside the box
-    int n_spheres = 30;
+    int n_spheres = 5;
     linkit::Vector3 gravity = linkit::Vector3(0, -9.8, 0.0);
 
     for (int i = 0; i < n_spheres; i++)
@@ -120,7 +119,7 @@ void Engine::load_scene()
         // Apply gravity to each sphere (index offset by 6 for the 6 box pieces: floor + 4 walls + ceiling)
         scene->force_registry.add(&scene->game_objects[6 + i], std::make_shared<SimpleGravity>(gravity));
     }
-    camera.transform = scene->camera.transform;
+    renderer->setup_from_scene(*scene);
 
 }
 
@@ -133,8 +132,6 @@ void Engine::run_single_thread()
     linkit::real accumulator = 0.0;
 
     const linkit::real min_frame_time = 1.0 / state_.target_fps;
-    glm::mat4 projection_matrix = scene->camera.get_projection_matrix();
-
     // No idea why this is needed
     scene->skybox.skybox_shader.use();
     scene->skybox.skybox_shader.set_int("skybox", 0);
@@ -163,9 +160,10 @@ void Engine::run_single_thread()
             t += dt_phys;
         }
 
-        renderer->begin_frame();
+        Renderer::begin_frame();
         ui->draw(state_);
-        renderer->render_scene_frame(*scene, projection_matrix, static_cast<linkit::real>(frame_time));
+        renderer->render_scene_frame(*scene, static_cast<linkit::real>(frame_time));
+        ui->end_frame();
         renderer->end_frame();
 
         double end_frame_time = glfwGetTime();
@@ -223,7 +221,6 @@ void Engine::rendering_thread_func()
     linkit::real currentTime = glfwGetTime();
 
     const linkit::real min_frame_time = 1.0 / state_.target_fps;
-    glm::mat4 projection_matrix = camera.get_projection_matrix();
 
     // No idea why this is needed
     scene->skybox.skybox_shader.use();
@@ -240,9 +237,10 @@ void Engine::rendering_thread_func()
         SceneSnapshot scene_snapshot;
         render_queue_.pop(scene_snapshot);
 
-        renderer->begin_frame();
+        Renderer::begin_frame();
         ui->draw(state_);
-        renderer->render_snapshot_frame(camera, scene->skybox, scene_snapshot, projection_matrix, static_cast<linkit::real>(frame_time));
+        renderer->render_snapshot_frame(scene->skybox, scene_snapshot, static_cast<linkit::real>(frame_time));
+        ui->end_frame();
         renderer->end_frame();
 
         double end_frame_time = glfwGetTime();

@@ -1,5 +1,4 @@
 #include <thread>
-#include <chrono>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
@@ -131,14 +130,31 @@ static void process_input(GLFWwindow* window, Camera& camera, const double dt)
     camera.transform.rotation.normalize();
 }
 
-Renderer::Renderer(const int width, const int height)
+Renderer::Renderer(EngineState* state)
+    : pWindow_(nullptr), state_(state)
+{
+    initialize_window();
+    light_sources = std::vector<LightSource>();
+
+    // Initialize OpenGL-dependent objects AFTER OpenGL context is created
+    skybox_ = std::make_unique<Skybox>();
+    camera_ = Camera();
+    projection_matrix_ = camera_.get_projection_matrix();
+
+
+    model_shader_ = std::make_unique<Shader>("resources/shaders/model.vert", "resources/shaders/phong.frag");
+    model_cache_.emplace("cube", Model("resources/models/primitives/cube.obj", false));
+    model_cache_.emplace("sphere", Model("resources/models/primitives/sphere.obj", false));
+}
+
+void Renderer::initialize_window()
 {
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    pWindow_ = glfwCreateWindow(width, height, "Vectra", nullptr, nullptr);
+    pWindow_ = glfwCreateWindow(state_->window_width, state_->window_height, "Vectra", nullptr, nullptr);
     if (pWindow_ == nullptr) {
         std::cout << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
@@ -155,7 +171,7 @@ Renderer::Renderer(const int width, const int height)
     stbi_set_flip_vertically_on_load(true);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
-    glViewport(0, 0, width, height);
+    glViewport(0, 0, state_->window_width, state_->window_height);
 
     glfwSetInputMode(pWindow_, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     if (glfwRawMouseMotionSupported())
@@ -165,16 +181,20 @@ Renderer::Renderer(const int width, const int height)
     glfwSetFramebufferSizeCallback(pWindow_, framebuffer_size_callback);
 }
 
+void Renderer::setup_from_scene(const Scene& scene)
+{
+    camera_ = scene.camera;
+    light_sources = scene.light_sources;
+    projection_matrix_ = camera_.get_projection_matrix();
+
+}
+
 void Renderer::begin_frame()
 {
     glfwPollEvents();
-    // Start the Dear ImGui frame
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
 }
 
-void Renderer::render_scene_frame(Scene& scene, const glm::mat4& projection_matrix, linkit::real dt)
+void Renderer::render_scene_frame(Scene& scene, linkit::real dt)
 {
     process_input(pWindow_, scene.camera, dt);
 
@@ -186,7 +206,7 @@ void Renderer::render_scene_frame(Scene& scene, const glm::mat4& projection_matr
 
     for (auto obj : scene.game_objects) {
         glm::mat4 model_matrix = Camera::get_model_matrix(obj.rb.transform);
-        draw_game_object(obj, model_matrix, view_matrix, projection_matrix, scene);
+        draw_game_object(obj, model_matrix, view_matrix, projection_matrix_, scene);
     }
 
     // Visualise BVH
@@ -194,38 +214,31 @@ void Renderer::render_scene_frame(Scene& scene, const glm::mat4& projection_matr
     //     debug_drawer_->draw_bvh(scene.bvh_root.get(), view_matrix, projection_matrix);
     // }
 
-    scene.skybox.draw(view_matrix, projection_matrix);
+    skybox_->draw(view_matrix, projection_matrix_);
 }
 
-void Renderer::render_snapshot_frame(Camera &camera, Skybox &skybox, const SceneSnapshot& snapshot, const glm::mat4& projection_matrix, const linkit::real dt)
+void Renderer::render_snapshot_frame(Skybox &skybox, const SceneSnapshot& snapshot, const linkit::real dt)
 {
-    process_input(pWindow_, camera, dt);
+    process_input(pWindow_, camera_, dt);
 
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glm::mat4 view_matrix = camera.get_view_matrix();
-    glm::vec3 camera_position = vector3_to_vec3(camera.transform.position);
+    glm::mat4 view_matrix = camera_.get_view_matrix();
+    glm::vec3 camera_position = vector3_to_vec3(camera_.transform.position);
 
-    for (auto obj : snapshot.objects) {
-        glm::mat4 model_matrix = Camera::get_model_matrix(obj.rb.transform);
-        draw_game_object(obj, model_matrix, view_matrix, projection_matrix, camera_position);
+    for (const auto& [model_name, transform] : snapshot.object_snapshots) {
+        glm::mat4 model_matrix = Camera::get_model_matrix(transform);
+
+        draw_game_object(model_name, model_matrix, view_matrix, projection_matrix_, camera_position);
     }
 
-    // Visualise BVH
-    // if (scene.bvh_root) {
-    //     debug_drawer_->draw_bvh(scene.bvh_root.get(), view_matrix, projection_matrix);
-    // }
-
-    skybox.draw(view_matrix, projection_matrix);
-    return;
+    skybox_->draw(view_matrix, projection_matrix_);
 }
 
 
 void Renderer::end_frame()
 {
-    ImGui::Render();
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     glfwSwapBuffers(pWindow_);
 }
 
@@ -233,10 +246,7 @@ void Renderer::end_frame()
 
 void Renderer::cleanup(const Scene &scene)
 {
-    for (const auto& obj : scene.game_objects)
-    {
-        obj.shader.delete_program();
-    }
+    model_shader_->delete_program();
 
 
     glfwTerminate();
@@ -247,48 +257,52 @@ void Renderer::cleanup(const Scene &scene)
 
 void Renderer::draw_game_object(GameObject& obj, glm::mat4 model_matrix, glm::mat4 view_matrix, glm::mat4 projection_matrix, Scene& scene)
 {
-
-    obj.shader.use();
-    obj.shader.set_mat4("model", model_matrix);
-    obj.shader.set_mat4("view", view_matrix);
-    obj.shader.set_mat4("projection", projection_matrix);
     glm::vec3 camera_position = vector3_to_vec3(scene.camera.transform.position);
 
-    obj.shader.set_vec3("camera_position", camera_position);
+    model_shader_->use();
+    model_shader_->set_mat4("model", model_matrix);
+    model_shader_->set_mat4("view", view_matrix);
+    model_shader_->set_mat4("projection", projection_matrix);
+    model_shader_->set_vec3("camera_position", camera_position);
 
-    if (!scene.light_sources.empty())
+
+    if (!light_sources.empty())
     {
-        obj.shader.set_vec3("light_position", scene.light_sources[0].position);
-        obj.shader.set_vec3("light_colour", scene.light_sources[0].colour);
+        model_shader_->set_vec3("light_position", light_sources[0].position);
+        model_shader_->set_vec3("light_colour", light_sources[0].colour);
     } else
     {
         glm::vec3 light_position = glm::vec3(0.0f);
         glm::vec3 light_colour = glm::vec3(1.0f);
-        obj.shader.set_vec3("light_position", light_position);
-
-        obj.shader.set_vec3("light_position", light_position);
-        obj.shader.set_vec3("light_colour", light_colour);
+        model_shader_->set_vec3("light_position", light_position);
+        model_shader_->set_vec3("light_colour", light_colour);
     }
-    obj.model.draw(obj.shader);
+
+    model_cache_.at(obj.model_name).draw(*model_shader_);
 }
 
-void Renderer::draw_game_object(GameObject& obj, glm::mat4 model_matrix, glm::mat4 view_matrix,
-    glm::mat4 projection_matrix, glm::vec3 camera_position)
+void Renderer::draw_game_object(const std::string& model_name, glm::mat4 model_matrix, glm::mat4 view_matrix, glm::mat4 projection_matrix, glm::vec3 camera_position)
 {
-    obj.shader.use();
-    obj.shader.set_mat4("model", model_matrix);
-    obj.shader.set_mat4("view", view_matrix);
-    obj.shader.set_mat4("projection", projection_matrix);
-    obj.shader.set_vec3("camera_position", camera_position);
+    model_shader_->use();
+    model_shader_->set_mat4("model", model_matrix);
+    model_shader_->set_mat4("view", view_matrix);
+    model_shader_->set_mat4("projection", projection_matrix);
+    model_shader_->set_vec3("camera_position", camera_position);
 
 
-    glm::vec3 light_position = glm::vec3(0.0f);
-    glm::vec3 light_colour = glm::vec3(1.0f);
-    obj.shader.set_vec3("light_position", light_position);
+    if (!light_sources.empty())
+    {
+        model_shader_->set_vec3("light_position", light_sources[0].position);
+        model_shader_->set_vec3("light_colour", light_sources[0].colour);
+    } else
+    {
+        glm::vec3 light_position = glm::vec3(0.0f);
+        glm::vec3 light_colour = glm::vec3(1.0f);
+        model_shader_->set_vec3("light_position", light_position);
+        model_shader_->set_vec3("light_colour", light_colour);
+    }
 
-    obj.shader.set_vec3("light_position", light_position);
-    obj.shader.set_vec3("light_colour", light_colour);
 
 
-    obj.model.draw(obj.shader);
+    model_cache_.at(model_name).draw(*model_shader_);
 }

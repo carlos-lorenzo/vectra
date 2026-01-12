@@ -22,6 +22,11 @@ void EngineUI::initialize(GLFWwindow* window)
 
 void EngineUI::draw(EngineState& state)
 {
+    // Start the Dear ImGui frame
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+
     // Setup the main DockSpace window to cover the entire viewport
     const ImGuiViewport* viewport = ImGui::GetMainViewport();
     ImGui::SetNextWindowPos(viewport->WorkPos);
@@ -76,6 +81,12 @@ void EngineUI::draw(EngineState& state)
         ImGui::Text("Select an object to view properties.");
     }
     ImGui::End();
+}
+
+void EngineUI::end_frame()
+{
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
 

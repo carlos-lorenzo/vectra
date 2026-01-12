@@ -25,10 +25,9 @@ void NewtonianGravity::update_force(GameObject& obj, linkit::real dt)
         // Avoid division by zero or huge forces at close distances
         if (distance_sq < linkit::REAL_EPSILON) continue;
 
-        linkit::real distance = sqrt(distance_sq);
         linkit::Vector3 force_dir = obj_to_other.normalized();
 
         linkit::real force_magnitude = (gravitational_constant * obj.rb.mass * other.rb.mass) / distance_sq;
-        obj.rb.accumulated_force += force_dir * force_magnitude;
+        obj.rb.add_force(force_magnitude * force_dir);
     }
 }

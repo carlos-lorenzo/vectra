@@ -12,8 +12,7 @@ class GameObject
 {
     public:
         Rigidbody rb;
-        Model model;
-        Shader shader;
+        std::string model_name;
         std::unique_ptr<ColliderPrimitive> collider; // nullable, owns ColliderSphere/ColliderBox
 
         GameObject();

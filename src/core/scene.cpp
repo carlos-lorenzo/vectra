@@ -147,14 +147,13 @@ SceneSnapshot Scene::create_snapshot() const
     SceneSnapshot snapshot;
     for (const auto& obj : game_objects)
     {
-        snapshot.objects.push_back(obj);
-        snapshot.object_transforms.push_back(obj.rb.transform);
+        GameObjectSnapshot obj_snapshot;
+        obj_snapshot.model_name = obj.model_name;
+        obj_snapshot.transform = obj.rb.transform;
+        snapshot.object_snapshots.push_back(obj_snapshot);
     }
 
-    for (const auto& light : light_sources)
-    {
-        snapshot.light_sources.push_back(light);
-    }
+
 
     return snapshot;
 }

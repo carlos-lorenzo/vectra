@@ -21,7 +21,6 @@ private:
     std::unique_ptr<Renderer> renderer;
     std::unique_ptr<Scene> scene;
     std::unique_ptr<EngineUI> ui;
-    Camera camera;
 
 
 public:

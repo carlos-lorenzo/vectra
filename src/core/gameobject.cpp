@@ -7,16 +7,14 @@
 GameObject::GameObject()
     :
     rb(Rigidbody()),
-    model("resources/models/primitives/sphere.obj", false),
     collider(std::make_unique<ColliderSphere>(&rb.transform, 1.0))
 {
-    shader = Shader("resources/shaders/model.vert", "resources/shaders/phong.frag");
+    model_name = "sphere";
 }
 
 GameObject::GameObject(const GameObject& other)
     : rb(other.rb),
-      model(other.model),
-      shader(other.shader)
+      model_name(other.model_name)
 {
     if (other.collider)
     {
@@ -29,8 +27,7 @@ GameObject& GameObject::operator=(const GameObject& other)
 {
     if (this == &other) return *this;
     rb = other.rb;
-    model = other.model;
-    shader = other.shader;
+    model_name = other.model_name;
     collider = other.collider ? other.collider->clone() : nullptr;
     if (collider)
     {
@@ -41,8 +38,7 @@ GameObject& GameObject::operator=(const GameObject& other)
 
 GameObject::GameObject(GameObject&& other) noexcept
     : rb(std::move(other.rb)),
-      model(std::move(other.model)),
-      shader(std::move(other.shader)),
+      model_name(std::move(other.model_name)),
       collider(std::move(other.collider))
 {
     if (collider)
@@ -55,8 +51,7 @@ GameObject& GameObject::operator=(GameObject&& other) noexcept
 {
     if (this == &other) return *this;
     rb = std::move(other.rb);
-    model = std::move(other.model);
-    shader = std::move(other.shader);
+    model_name = std::move(other.model_name);
     collider = std::move(other.collider);
 
     if (collider)
@@ -88,7 +83,7 @@ void GameObject::set_collider_type(const std::string& tag)
 
 void GameObject::set_shape(const std::string& shape)
 {
-    model = Model("resources/models/primitives/" + shape + ".obj", false);
+    model_name = shape;
 }
 
 ColliderPrimitive& GameObject::get_collider()

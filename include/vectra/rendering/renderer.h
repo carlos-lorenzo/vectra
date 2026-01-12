@@ -4,7 +4,10 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#include "vectra/core/engine_state.h"
 #include "vectra/rendering/debug_drawer.h"
+#include "vectra/rendering/shader.h"
+#include "vectra/rendering/model.h"
 #include "vectra/core/scene.h"
 #include "vectra/core/scene_snapshot.h"
 
@@ -12,20 +15,28 @@ class Renderer
 {
     private:
         GLFWwindow *pWindow_;
-        float simulation_frequency_ = 60.0f; // Physics update frequency in Hz
-        float target_fps_ = 144.0f; // Target frames per second for rendering
-
+        EngineState* state_;
         std::unique_ptr<DebugDrawer> debug_drawer_; // Add debug drawer
+        std::unordered_map<std::string, Model> model_cache_; // Model cache
+        std::unique_ptr<Shader> model_shader_; // Add shader
+        Camera camera_; // Camera for rendering (set by scene)
+        std::unique_ptr<Skybox> skybox_; // Skybox for rendering (set by scene) - must be initialized after OpenGL context
+        std::vector<LightSource> light_sources; // Light sources in the scene (set by scene)
+        glm::mat4 projection_matrix_{};
+
+
     public:
-        Renderer(int width, int height);
+        Renderer(EngineState* state);
+        void initialize_window();
+        void setup_from_scene(const Scene& scene);
         [[nodiscard]] GLFWwindow* get_window() const { return pWindow_; }
-        void begin_frame();
-        void render_scene_frame(Scene &scene, const glm::mat4 &projection_matrix, linkit::real dt);
-        void render_snapshot_frame(Camera &camera, Skybox &skybox, const SceneSnapshot &snapshot, const glm::mat4 &projection_matrix, linkit::real dt);
+        static void begin_frame();
+        void render_scene_frame(Scene &scene, linkit::real dt);
+        void render_snapshot_frame(Skybox &skybox, const SceneSnapshot &snapshot, linkit::real dt);
         void end_frame();
 
         void cleanup(const Scene& scene);
-        static void draw_game_object(::GameObject& obj, glm::mat4 model_matrix, glm::mat4 view_matrix, glm::mat4 projection_matrix, Scene& scene);
-        void draw_game_object(::GameObject& obj, glm::mat4 model_matrix, glm::mat4 view_matrix, glm::mat4 projection_matrix, glm::vec3 camera_position);
+        void draw_game_object(::GameObject& obj, glm::mat4 model_matrix, glm::mat4 view_matrix, glm::mat4 projection_matrix, Scene& scene);
+        void draw_game_object(const std::string& model_name, glm::mat4 model_matrix, glm::mat4 view_matrix, glm::mat4 projection_matrix, glm::vec3 camera_position);
 };
 #endif //VECTRA_RENDERER_H
