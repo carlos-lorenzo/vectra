@@ -204,12 +204,14 @@ void Engine::physics_thread_func()
         // Only step physics when enough real time has accumulated
         while (accumulator >= dt)
         {
-            scene->step(dt);
+            if (!state_.is_paused) {
+                scene->step(dt);
+            }
             accumulator -= dt;
         }
 
         // Push state to renderer
-        // Note: In a triple-buffer setup, this might block if renderer is slow.
+        // Note: In a triple-buffer setup, this might block if the renderer is slow.
         // That is acceptable; the accumulator ensures we catch up when we unblock.
         render_queue_.push(scene->create_snapshot());
     }
