@@ -203,10 +203,12 @@ void Renderer::use_skybox()
 void Renderer::begin_frame()
 {
     glfwPollEvents();
+
 }
 
 void Renderer::render_scene_frame(Scene& scene, linkit::real dt)
 {
+
     process_input(pWindow_, scene.camera, dt, state_->scene_view_focused);
 
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);

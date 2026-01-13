@@ -21,7 +21,7 @@ class CollisionData
 
         GameObject* objects[2] = {nullptr, nullptr};
         bool valid = false;
-        linkit::real restitution = 0.0f;
+        linkit::real restitution = 1.0f;
         linkit::real friction = 0.4f;  // Default friction coefficient
         std::vector<CollisionContact> contacts;
 };

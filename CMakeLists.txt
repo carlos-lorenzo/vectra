@@ -50,6 +50,15 @@ endif()
 
 # --- 4. Assimp (Asset Import) ---
 # Warning: Assimp takes a while to compile the first time
+
+# Windows-specific fixes for MSVC runtime
+if(WIN32)
+    if(POLICY CMP0091)
+        cmake_policy(SET CMP0091 NEW)
+    endif()
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE STRING "" FORCE)
+endif()
+
 FetchContent_Declare(
     assimp
     GIT_REPOSITORY https://github.com/assimp/assimp.git
@@ -62,6 +71,7 @@ set(ASSIMP_INJECT_DEBUG_POSTFIX OFF CACHE BOOL "" FORCE)
 set(ASSIMP_INSTALL OFF CACHE BOOL "" FORCE)
 set(ASSIMP_NO_EXPORT ON CACHE BOOL "" FORCE)
 set(ASSIMP_BUILD_ZLIB ON CACHE BOOL "" FORCE)
+set(ASSIMP_WARNINGS_AS_ERRORS OFF CACHE BOOL "" FORCE)
 
 FetchContent_MakeAvailable(assimp)
 
@@ -143,6 +153,7 @@ set(SOURCES
     src/physics/collider_primitive.cpp
     src/rendering/engine_ui.cpp
     src/core/engine.cpp
+        src/physics/forces/object_anchored_spring.cpp
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})

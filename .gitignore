@@ -51,3 +51,5 @@ copilot.*
 /dist/
 cmake-build-debug
 cmake-build-release
+
+resources/Examples/
