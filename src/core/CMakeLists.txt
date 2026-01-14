@@ -8,5 +8,13 @@ target_include_directories(core
         ${CMAKE_CURRENT_SOURCE_DIR}/../../external/linkit/include
         ${CMAKE_CURRENT_SOURCE_DIR}/../../include
 )
-target_link_libraries(core PUBLIC linkit)
-target_link_libraries(core PRIVATE glm::glm)
+
+# Link dependencies - use PUBLIC for headers that are exposed in core's public headers
+target_link_libraries(core
+    PUBLIC
+        linkit
+        glm::glm
+        assimp::assimp
+        glfw
+        stb_image
+)

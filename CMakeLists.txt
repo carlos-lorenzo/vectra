@@ -80,7 +80,26 @@ if(TARGET assimp AND NOT TARGET assimp::assimp)
     add_library(assimp::assimp ALIAS assimp)
 endif()
 
-# --- 5. GLAD (OpenGL Loader - included in repo) ---
+# --- 5. stb_image (Header-only image loading) ---
+FetchContent_Declare(
+    stb
+    GIT_REPOSITORY https://github.com/nothings/stb.git
+    GIT_TAG        master
+    GIT_SHALLOW    TRUE
+)
+FetchContent_MakeAvailable(stb)
+
+# Create interface library for stb with a subdirectory structure
+add_library(stb_image INTERFACE)
+
+# Create stb subdirectory structure so #include <stb/stb_image.h> works
+set(STB_INCLUDE_DIR ${CMAKE_BINARY_DIR}/stb_include)
+file(MAKE_DIRECTORY ${STB_INCLUDE_DIR}/stb)
+configure_file(${stb_SOURCE_DIR}/stb_image.h ${STB_INCLUDE_DIR}/stb/stb_image.h COPYONLY)
+
+target_include_directories(stb_image INTERFACE ${STB_INCLUDE_DIR})
+
+# --- 6. GLAD (OpenGL Loader - included in repo) ---
 set(GLAD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/glad")
 if(EXISTS "${GLAD_DIR}/src/glad.c")
     add_library(glad STATIC "${GLAD_DIR}/src/glad.c")
@@ -89,7 +108,7 @@ else()
     message(FATAL_ERROR "GLAD not found at ${GLAD_DIR}. Please ensure external/glad is present.")
 endif()
 
-# --- 6. ImGui (Git Submodule) ---
+# --- 7. ImGui (Git Submodule) ---
 set(IMGUI_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/external/imgui")
 if(EXISTS "${IMGUI_ROOT}/imgui.cpp")
     set(IMGUI_SOURCES
@@ -118,15 +137,15 @@ else()
     )
 endif()
 
-# --- 7. Linkit (External Library) ---
+# --- 8. Linkit (External Library) ---
 add_subdirectory(external/linkit)
 
-# --- 8. Project Subdirectories (must come after all dependencies are defined) ---
+# --- 9. Project Subdirectories (must come after all dependencies are defined) ---
 add_subdirectory(src/rendering)
 add_subdirectory(src/physics)
 add_subdirectory(src/core)
 
-# --- 9. Main Executable ---
+# --- 10. Main Executable ---
 set(SOURCES
     src/main.cpp
     src/rendering/shader.cpp
@@ -158,7 +177,7 @@ set(SOURCES
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 
-# --- 10. Resource Copying ---
+# --- 11. Resource Copying ---
 # Create resource directories in build folder
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/resources/shaders)
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/resources/models)
@@ -206,11 +225,11 @@ if(EXISTS "${CMAKE_SOURCE_DIR}/resources/fonts")
     )
 endif()
 
-# --- 11. Resources Path Definition ---
+# --- 12. Resources Path Definition ---
 set(RESOURCES_DIR "${CMAKE_BINARY_DIR}/resources")
 target_compile_definitions(${PROJECT_NAME} PRIVATE "RESOURCES_PATH=\"${RESOURCES_DIR}\"")
 
-# --- 12. Link Libraries ---
+# --- 13. Link Libraries ---
 target_link_libraries(${PROJECT_NAME}
     PRIVATE
         OpenGL::GL
@@ -222,11 +241,12 @@ target_link_libraries(${PROJECT_NAME}
         physics
         core
         assimp::assimp
+        stb_image
     INTERFACE
         linkit
 )
 
-# --- 13. Include Directories ---
+# --- 14. Include Directories ---
 target_include_directories(${PROJECT_NAME}
     PRIVATE
         "${CMAKE_CURRENT_SOURCE_DIR}/include"

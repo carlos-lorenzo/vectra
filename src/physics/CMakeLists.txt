@@ -13,5 +13,13 @@ target_include_directories(physics
         ${CMAKE_CURRENT_SOURCE_DIR}/../../external/glad/include
         ${CMAKE_CURRENT_SOURCE_DIR}/../../include
 )
-target_link_libraries(physics PUBLIC linkit)
-target_link_libraries(physics PRIVATE glm::glm)
+
+# Link dependencies - use PUBLIC for headers exposed in physics's public headers
+target_link_libraries(physics
+    PUBLIC
+        linkit
+        glm::glm
+        assimp::assimp
+        glfw
+        stb_image
+)
