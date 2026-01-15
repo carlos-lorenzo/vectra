@@ -311,12 +311,12 @@ void simple_gravity_from_json(const json &j, SimpleGravity &gravity)
 void newtonian_gravity_to_json(json &j, const NewtonianGravity &gravity, const Scene &scene)
 {
     std::vector<int> affect_object_indices;
-    for (int i=0; i < scene.game_objects.size(); ++i)
+    for (int i = 0; i < static_cast<int>(scene.game_objects.size()); ++i)
     {
-        const auto& obj = scene.game_objects[i];
-        for (const auto& affected_obj : gravity.affected_objects)
+        const auto* obj_ptr = &scene.game_objects[i];
+        for (const auto* affected_obj : gravity.affected_objects)
         {
-            if (&obj == &affected_obj)
+            if (obj_ptr == affected_obj)
             {
                 affect_object_indices.push_back(i);
                 break;
@@ -334,7 +334,7 @@ void newtonian_gravity_to_json(json &j, const NewtonianGravity &gravity, const S
  * Deserialize NewtonianGravity from JSON.
  * Returns false if the force should be skipped (no valid affected objects).
  */
-bool newtonian_gravity_from_json(const json &j, NewtonianGravity &gravity, const Scene &scene, const std::string& object_name)
+bool newtonian_gravity_from_json(const json &j, NewtonianGravity &gravity, Scene &scene, const std::string& object_name)
 {
     // Default gravitational constant is 0
     if (j.contains("gravitational_constant"))
@@ -349,12 +349,14 @@ bool newtonian_gravity_from_json(const json &j, NewtonianGravity &gravity, const
     }
 
     const auto& indices_json = j.at("affected_object_indices");
+    gravity.affected_objects.clear();
+
     for (const auto& index_json : indices_json)
     {
         int index = index_json.get<int>();
         if (index >= 0 && index < static_cast<int>(scene.game_objects.size()))
         {
-            gravity.affected_objects.push_back(scene.game_objects[index]);
+            gravity.affected_objects.push_back(&scene.game_objects[index]);
         }
         else
         {
@@ -581,9 +583,7 @@ inline void from_json(const json &j, Scene &scene)
                     }
                     else if (type == "newtonian_gravity")
                     {
-                        // Empty placeholder
-                        std::vector<GameObject> game_objects;
-                        auto gravity = std::make_shared<NewtonianGravity>(game_objects, 0);
+                        auto gravity = std::make_shared<NewtonianGravity>();
                         if (newtonian_gravity_from_json(fg_json, *gravity, scene, obj_name))
                         {
                             scene.force_registry.add(&scene.game_objects.back(), gravity);

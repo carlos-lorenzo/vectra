@@ -10,9 +10,10 @@ class NewtonianGravity : public ForceGenerator
 
 
 public:
-    std::vector<GameObject>& affected_objects;
+    std::vector<GameObject*> affected_objects;
     linkit::real gravitational_constant;
-    explicit NewtonianGravity(std::vector<GameObject>& game_objects, linkit::real g_const = 6.67e-11);
+    explicit NewtonianGravity(linkit::real g_const = 6.67e-11);
+    explicit NewtonianGravity(std::vector<GameObject*> game_objects, linkit::real g_const = 6.67e-11);
     void update_force(GameObject& obj, linkit::real dt) override;
 };
 

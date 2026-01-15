@@ -80,8 +80,9 @@ SimpleGravity(const Vector3& field = Vector3(0, -9.81, 0));
 Applies N-body gravitational attraction using inverse-square law.
 
 ```cpp
-NewtonianGravity(std::vector<GameObject>& affected_objects, 
-                 real gravitational_constant = 6.67e-11);
+NewtonianGravity(linkit::real gravitational_constant = 6.67e-11);
+NewtonianGravity(std::vector<GameObject*> affected_objects, 
+                 linkit::real gravitational_constant = 6.67e-11);
 ```
 
 **JSON:**

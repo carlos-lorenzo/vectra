@@ -433,11 +433,7 @@ Each source module includes detailed documentation:
 ![Editor Interface](docs/screenshots/editor_interface.png)
 *The Unity/Godot-inspired editor with dockable panels: hierarchy, inspector, and real-time scene view*
 
-[//]: # (<!-- TODO: Add screenshot of physics simulation in action &#40;e.g., falling objects, spring system&#41; -->)
 
-[//]: # (![Physics Simulation]&#40;docs/screenshots/physics_simulation.png&#41;)
-
-[//]: # (*Real-time physics simulation with gravity, collisions, and spring forces*)
 
 </div>
 
