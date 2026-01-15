@@ -21,6 +21,8 @@ Rigidbody::Rigidbody()
     accumulated_force = linkit::Vector3(0.0f, 0.0f, 0.0f);
     accumulated_torque = linkit::Vector3(0.0f, 0.0f, 0.0f);
 
+    last_frame_acceleration = linkit::Vector3(0.0f, 0.0f, 0.0f);
+
     // Will be set by a child? constructor? bounding box?
     _local_inverse_inertia_tensor = linkit::Matrix3();
 
@@ -112,6 +114,10 @@ void Rigidbody::step(const linkit::real dt)
     if (has_infinite_mass()) return; // Object is immovable
 
     compute_accelerations();
+
+    // Store the acceleration for resting contact velocity compensation
+    last_frame_acceleration = acceleration;
+
     step_position(dt);
     step_rotation(dt);
 }

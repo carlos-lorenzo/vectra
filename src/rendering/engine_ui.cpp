@@ -223,6 +223,22 @@ void EngineUI::draw_toolbar(EngineState& state)
         ImGui::PopStyleColor(4);
 
         ImGui::SameLine();
+
+        // Restart button
+        ImVec4 restart_color = ImVec4(0.741f, 0.576f, 0.976f, 1.0f);  // Purple color
+        ImGui::PushStyleColor(ImGuiCol_Button, restart_color);
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(restart_color.x * 0.8f, restart_color.y * 0.8f, restart_color.z * 0.8f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(restart_color.x * 0.6f, restart_color.y * 0.6f, restart_color.z * 0.6f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
+
+        if (ImGui::Button("  Restart  "))
+        {
+            state.scene_should_restart = true;
+            state.is_paused = true;
+        }
+        ImGui::PopStyleColor(4);
+
+        ImGui::SameLine();
         ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
         ImGui::SameLine();
 
@@ -453,6 +469,82 @@ void EngineUI::draw(EngineState& state, SceneSnapshot& scene_snapshot, GLuint sc
     draw_hierarchy(scene_snapshot);
     draw_inspector(scene_snapshot);
     draw_scene_view(state, scene_texture_id);
+
+    // Draw restart overlay if scene is restarting
+    if (state.scene_should_restart)
+    {
+        draw_restart_overlay();
+    }
+}
+
+void EngineUI::draw_restart_overlay()
+{
+    // Get viewport dimensions
+    const ImGuiViewport* viewport = ImGui::GetMainViewport();
+
+    // Semi-transparent dark overlay covering the entire screen
+    ImGui::SetNextWindowPos(viewport->WorkPos);
+    ImGui::SetNextWindowSize(viewport->WorkSize);
+
+    ImGuiWindowFlags overlay_flags = ImGuiWindowFlags_NoDecoration |
+                                     ImGuiWindowFlags_NoMove |
+                                     ImGuiWindowFlags_NoSavedSettings |
+                                     ImGuiWindowFlags_NoFocusOnAppearing |
+                                     ImGuiWindowFlags_NoNav |
+                                     ImGuiWindowFlags_NoInputs;
+
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 0.6f));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+
+    ImGui::Begin("##RestartOverlay", nullptr, overlay_flags);
+
+    // Calculate center position for the notification box
+    ImVec2 center = ImVec2(viewport->WorkPos.x + viewport->WorkSize.x * 0.5f,
+                           viewport->WorkPos.y + viewport->WorkSize.y * 0.5f);
+
+    // Notification box dimensions
+    float box_width = 280.0f;
+    float box_height = 100.0f;
+    ImVec2 box_min = ImVec2(center.x - box_width * 0.5f, center.y - box_height * 0.5f);
+    ImVec2 box_max = ImVec2(center.x + box_width * 0.5f, center.y + box_height * 0.5f);
+
+    // Draw rounded rectangle background (Dracula current_line color)
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    draw_list->AddRectFilled(box_min, box_max,
+                             IM_COL32(68, 71, 90, 240),  // #44475a with high alpha
+                             8.0f);
+
+    // Draw border (Dracula purple)
+    draw_list->AddRect(box_min, box_max,
+                       IM_COL32(189, 147, 249, 255),  // #bd93f9
+                       8.0f, 0, 2.0f);
+
+    // Draw "Restarting Scene..." text
+    const char* title_text = "Restarting Scene...";
+    ImVec2 title_size = ImGui::CalcTextSize(title_text);
+    ImVec2 title_pos = ImVec2(center.x - title_size.x * 0.5f, center.y - 20.0f);
+    draw_list->AddText(title_pos,
+                       IM_COL32(248, 248, 242, 255),  // #f8f8f2 foreground
+                       title_text);
+
+    // Animated loading dots based on time
+    float time = static_cast<float>(ImGui::GetTime());
+    int dot_count = static_cast<int>(fmodf(time * 3.0f, 4.0f));
+    const char* dots[] = {"", ".", "..", "..."};
+    const char* loading_text = "Loading";
+    char full_text[32];
+    snprintf(full_text, sizeof(full_text), "%s%s", loading_text, dots[dot_count]);
+
+    ImVec2 loading_size = ImGui::CalcTextSize(full_text);
+    ImVec2 loading_pos = ImVec2(center.x - loading_size.x * 0.5f, center.y + 10.0f);
+    draw_list->AddText(loading_pos,
+                       IM_COL32(139, 233, 253, 255),  // #8be9fd cyan
+                       full_text);
+
+    ImGui::End();
+    ImGui::PopStyleVar(2);
+    ImGui::PopStyleColor(1);
 }
 
 void EngineUI::end_frame()

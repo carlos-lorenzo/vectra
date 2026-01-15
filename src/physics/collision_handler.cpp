@@ -8,6 +8,32 @@
 
 CollisionHandler::CollisionHandler() = default;
 
+CollisionHandler::CollisionHandler(
+    unsigned int position_iterations,
+    unsigned int velocity_iterations,
+    linkit::real position_epsilon,
+    linkit::real velocity_epsilon
+) :
+    position_iterations_(position_iterations),
+    velocity_iterations_(velocity_iterations),
+    position_epsilon_(position_epsilon),
+    velocity_epsilon_(velocity_epsilon)
+{
+}
+
+void CollisionHandler::set_parameters(
+    unsigned int position_iterations,
+    unsigned int velocity_iterations,
+    linkit::real position_epsilon,
+    linkit::real velocity_epsilon
+)
+{
+    position_iterations_ = position_iterations;
+    velocity_iterations_ = velocity_iterations;
+    position_epsilon_ = position_epsilon;
+    velocity_epsilon_ = velocity_epsilon;
+}
+
 void CollisionHandler::add_collision(const CollisionData& collision)
 {
     collisions.push_back(collision);
@@ -371,18 +397,96 @@ CollisionData CollisionHandler::solve_sphere_box(ColliderSphere& sphere, Collide
 }
 
 
-void CollisionHandler::solve_contacts()
+void CollisionHandler::prepare_contacts()
+{
+    for (auto& collision : collisions)
+    {
+        for (auto& contact : collision.contacts)
+        {
+            // Calculate relative velocity at contact point
+            linkit::Vector3 closing_velocity(0, 0, 0);
+
+            for (int i = 0; i < 2; i++)
+            {
+                linkit::Vector3 velocity_at_contact = collision.objects[i]->rb.velocity +
+                    collision.objects[i]->rb.angular_velocity % contact.relative_positions[i];
+
+                if (i == 0)
+                {
+                    closing_velocity += velocity_at_contact;
+                }
+                else
+                {
+                    closing_velocity -= velocity_at_contact;
+                }
+            }
+
+            // Transform to contact space
+            linkit::Matrix3 contact_to_world_inverse = contact.contact_basis_to_world_inverse();
+            contact.contact_velocity = contact_to_world_inverse * closing_velocity;
+            contact.calculate_desired_delta_velocity(collision.restitution);
+        }
+    }
+}
+
+CollisionHandler::ContactRef CollisionHandler::find_worst_penetration() const
+{
+    ContactRef worst = {SIZE_MAX, SIZE_MAX};
+    linkit::real worst_penetration = position_epsilon_;
+
+    for (size_t c = 0; c < collisions.size(); ++c)
+    {
+        const auto& contacts = collisions[c].contacts;
+        for (size_t i = 0; i < contacts.size(); ++i)
+        {
+            if (contacts[i].penetration_depth > worst_penetration)
+            {
+                worst_penetration = contacts[i].penetration_depth;
+                worst.collision_index = c;
+                worst.contact_index = i;
+            }
+        }
+    }
+
+    return worst;
+}
+
+CollisionHandler::ContactRef CollisionHandler::find_worst_velocity() const
+{
+    ContactRef worst = {SIZE_MAX, SIZE_MAX};
+    linkit::real worst_desired_delta = velocity_epsilon_;
+
+    for (size_t c = 0; c < collisions.size(); ++c)
+    {
+        const auto& contacts = collisions[c].contacts;
+        for (size_t i = 0; i < contacts.size(); ++i)
+        {
+            // Find the contact that needs the largest velocity change
+            if (contacts[i].desired_delta_velocity > worst_desired_delta)
+            {
+                worst_desired_delta = contacts[i].desired_delta_velocity;
+                worst.collision_index = c;
+                worst.contact_index = i;
+            }
+        }
+    }
+
+    return worst;
+}
+
+void CollisionHandler::solve_contacts(linkit::real dt)
 {
     if (collisions.empty()) return;
-    for (auto &collision : collisions)
-    {
 
-        for (auto& contact : collision.get_contacts())
+    // Process each collision and contact directly
+    for (auto& collision : collisions)
+    {
+        for (auto& contact : collision.contacts)
         {
             linkit::real delta_velocity = 0;
-            linkit::Vector3 closing_velocity = linkit::Vector3(0, 0, 0);
+            linkit::Vector3 closing_velocity(0, 0, 0);
 
-            for (int i=0; i<2; i++)
+            for (int i = 0; i < 2; i++)
             {
                 linkit::Matrix3 inverse_inertia_tensor = collision.objects[i]->rb._local_inverse_inertia_tensor;
 
@@ -396,21 +500,41 @@ void CollisionHandler::solve_contacts()
                     collision.objects[i]->rb.angular_velocity % contact.relative_positions[i];
 
                 // First object adds, second object subtracts (closing velocity)
-                if (i == 0) {
+                if (i == 0)
+                {
                     closing_velocity += velocity_at_contact;
-                } else {
+                }
+                else
+                {
                     closing_velocity -= velocity_at_contact;
                 }
             }
 
-            // Separating velocity along the normal (rate at which objects separate)
-            // closing_velocity = v0 - v1, so separating = (v1 - v0) · n = -closing · n
+            // Separating velocity along the normal
             linkit::real separating_velocity = -(closing_velocity * contact.collision_normal);
 
             // If objects are already separating, skip
             if (separating_velocity > 0) continue;
 
-            linkit::real desired_delta_velocity = -separating_velocity * (1 + collision.restitution);
+            // Calculate velocity from acceleration this frame
+            // This is the velocity that was added due to forces (like gravity)
+            linkit::real velocity_from_acc =
+                collision.objects[0]->rb.last_frame_acceleration * contact.collision_normal * dt;
+            velocity_from_acc -=
+                collision.objects[1]->rb.last_frame_acceleration * contact.collision_normal * dt;
+
+            // For slow-moving contacts, reduce/eliminate restitution to prevent jitter
+            constexpr linkit::real velocity_limit = 0.25f;
+            linkit::real effective_restitution = collision.restitution;
+            if (linkit::real_abs(separating_velocity) < velocity_limit)
+            {
+                effective_restitution = 0.0f;
+            }
+
+            // Remove acceleration-induced velocity from the restitution calculation
+            // This prevents bouncing due to gravity pulling objects together
+            linkit::real desired_delta_velocity = -separating_velocity
+                - effective_restitution * (separating_velocity - velocity_from_acc);
 
             // Avoid division by zero
             if (delta_velocity < linkit::REAL_EPSILON) continue;
@@ -422,7 +546,7 @@ void CollisionHandler::solve_contacts()
 
             linkit::Vector3 impulse = contact.collision_normal * impulse_magnitude;
 
-            // Apply impulse to first object (pushed away from object 1, opposite to normal)
+            // Apply impulse to first object
             {
                 linkit::Vector3 velocity_change = impulse * collision.objects[0]->rb.inverse_mass;
                 linkit::Vector3 impulse_torque = contact.relative_positions[0] % impulse;
@@ -438,7 +562,7 @@ void CollisionHandler::solve_contacts()
                 }
             }
 
-            // Apply impulse to the second object (pushed away from object 0, along normal)
+            // Apply impulse to second object
             {
                 linkit::Vector3 velocity_change = impulse * collision.objects[1]->rb.inverse_mass;
                 linkit::Vector3 impulse_torque = contact.relative_positions[1] % impulse;
@@ -455,103 +579,325 @@ void CollisionHandler::solve_contacts()
             }
         }
     }
-
 }
 
-void CollisionHandler::resolve_interpretations()
+void CollisionHandler::resolve_contact_velocity(
+    CollisionData& collision_data,
+    CollisionContact& contact,
+    linkit::Vector3 velocity_change[2],
+    linkit::Vector3 rotation_change[2]
+)
 {
-    // Non-linear interpretation resolution -> might implement relaxation in the future
-    if (collisions.empty()) return;
-    for (auto &collision : collisions)
+    // Initialize output arrays
+    velocity_change[0] = velocity_change[1] = linkit::Vector3(0, 0, 0);
+    rotation_change[0] = rotation_change[1] = linkit::Vector3(0, 0, 0);
+
+    // If no velocity change needed, skip
+    if (contact.desired_delta_velocity <= 0)
     {
-        for (auto& contact : collision.get_contacts())
+        return;
+    }
+
+    // Calculate the impulse needed
+    linkit::real delta_velocity = 0;
+
+    for (int i = 0; i < 2; i++)
+    {
+        linkit::Matrix3 inverse_inertia_tensor = collision_data.objects[i]->rb._local_inverse_inertia_tensor;
+
+        linkit::Vector3 torque = contact.relative_positions[i] % contact.collision_normal;
+        linkit::Vector3 delta_angular_velocity = inverse_inertia_tensor * torque;
+        delta_velocity += (delta_angular_velocity % contact.relative_positions[i]) * contact.collision_normal;
+        delta_velocity += collision_data.objects[i]->rb.inverse_mass;
+    }
+
+    // Avoid division by zero
+    if (delta_velocity < linkit::REAL_EPSILON)
+    {
+        return;
+    }
+
+    linkit::real impulse_magnitude = contact.desired_delta_velocity / delta_velocity;
+
+    // Safety check for NaN/Inf
+    if (!std::isfinite(impulse_magnitude))
+    {
+        return;
+    }
+
+    linkit::Vector3 impulse = contact.collision_normal * impulse_magnitude;
+
+    // Calculate and apply changes for first object (impulse is applied in negative direction)
+    {
+        velocity_change[0] = impulse * collision_data.objects[0]->rb.inverse_mass;
+        linkit::Vector3 impulse_torque = contact.relative_positions[0] % impulse;
+        rotation_change[0] = collision_data.objects[0]->rb._local_inverse_inertia_tensor * impulse_torque;
+
+        if (std::isfinite(velocity_change[0].x) && std::isfinite(velocity_change[0].y) && std::isfinite(velocity_change[0].z))
         {
-            linkit::real angular_inertia_contact[2];
-            linkit::real angular_move[2];
-
-            linkit::real linear_inertia_contact[2];
-            linkit::real linear_move[2];
-
-            linkit::real total_inertia = 0;
-            for (int i=0; i<2;i++)
-            {
-                GameObject* body = collision.objects[i];
-                linkit::Matrix3 inverse_inertia_tensor = body->rb._local_inverse_inertia_tensor;
-
-                linkit::Vector3 torque = contact.relative_positions[i] % contact.collision_normal;
-                linkit::Vector3 delta_angular_velocity = inverse_inertia_tensor * torque;
-                linkit::Vector3 angular_inertia_world = (delta_angular_velocity % contact.relative_positions[i]);
-                angular_inertia_contact[i] = angular_inertia_world * contact.collision_normal;
-                linear_inertia_contact[i] = body->rb.inverse_mass;
-                total_inertia += angular_inertia_contact[i] + linear_inertia_contact[i];
-            }
-
-            // Avoid division by zero
-            if (total_inertia < linkit::REAL_EPSILON) continue;
-
-            const linkit::real inverse_total_inertia = 1.0f / total_inertia;
-
-
-            angular_move[0] = -contact.penetration_depth * angular_inertia_contact[0] * inverse_total_inertia;
-            angular_move[1] = contact.penetration_depth * angular_inertia_contact[1] * inverse_total_inertia;
-
-            linear_move[0] = -contact.penetration_depth * linear_inertia_contact[0] * inverse_total_inertia;
-            linear_move[1] = contact.penetration_depth * linear_inertia_contact[1] * inverse_total_inertia;
-
-            for (int i=0; i<2;i++)
-            {
-                GameObject* body = collision.objects[i];
-
-                // Angular resolution
-                linkit::real limit = 0.2 * contact.relative_positions[i].magnitude();
-                if (linkit::real_abs(angular_move[i]) > limit)
-                {
-                    linkit::real total_move = linear_move[i] + angular_move[i];
-                    if (angular_move[i] >= 0)
-                    {
-                        angular_move[i] = limit;
-                    } else
-                    {
-                        angular_move[i] = -limit;
-                    }
-                    linear_move[i] = total_move - angular_move[i];
-                }
-
-                // Only apply angular resolution if there's angular inertia
-                if (linkit::real_abs(angular_inertia_contact[i]) > linkit::REAL_EPSILON)
-                {
-                    linkit::Matrix3 inverse_inertia_tensor = body->rb._local_inverse_inertia_tensor;
-                    linkit::Vector3 impulsive_torque = contact.relative_positions[i] % contact.collision_normal;
-                    linkit::Vector3 impulse_per_move = inverse_inertia_tensor * impulsive_torque;
-                    linkit::Vector3 rotation_per_move = impulse_per_move * (1.0/angular_inertia_contact[i]);
-                    linkit::Vector3 rotation = rotation_per_move * angular_move[i];
-
-                    // Safety check for NaN/Inf
-                    if (std::isfinite(rotation.x) && std::isfinite(rotation.y) && std::isfinite(rotation.z))
-                    {
-                        body->rb.transform.rotation.add_scaled_vector(rotation, 1);
-                        body->rb.transform.rotation.normalize();
-                    }
-                }
-
-                // Linear resolution
-                linkit::Vector3 linear_displacement = contact.collision_normal * linear_move[i];
-                if (std::isfinite(linear_displacement.x) && std::isfinite(linear_displacement.y) && std::isfinite(linear_displacement.z))
-                {
-                    body->rb.transform.translate(linear_displacement);
-                }
-
-
-            }
+            collision_data.objects[0]->rb.velocity -= velocity_change[0];
+        }
+        if (std::isfinite(rotation_change[0].x) && std::isfinite(rotation_change[0].y) && std::isfinite(rotation_change[0].z))
+        {
+            collision_data.objects[0]->rb.angular_velocity -= rotation_change[0];
         }
     }
 
+    // Calculate and apply changes for second object (impulse is applied in positive direction)
+    {
+        velocity_change[1] = impulse * collision_data.objects[1]->rb.inverse_mass;
+        linkit::Vector3 impulse_torque = contact.relative_positions[1] % impulse;
+        rotation_change[1] = collision_data.objects[1]->rb._local_inverse_inertia_tensor * impulse_torque;
+
+        if (std::isfinite(velocity_change[1].x) && std::isfinite(velocity_change[1].y) && std::isfinite(velocity_change[1].z))
+        {
+            collision_data.objects[1]->rb.velocity += velocity_change[1];
+        }
+        if (std::isfinite(rotation_change[1].x) && std::isfinite(rotation_change[1].y) && std::isfinite(rotation_change[1].z))
+        {
+            collision_data.objects[1]->rb.angular_velocity += rotation_change[1];
+        }
+    }
+
+    // Mark contact as resolved
+    contact.contact_velocity.x += contact.desired_delta_velocity;
+    contact.desired_delta_velocity = 0;
+}
+
+void CollisionHandler::update_velocities_after_resolution(
+    const ContactRef& resolved,
+    const linkit::Vector3 velocity_change[2],
+    const linkit::Vector3 rotation_change[2]
+)
+{
+    const CollisionData& resolved_collision = collisions[resolved.collision_index];
+
+    for (size_t c = 0; c < collisions.size(); ++c)
+    {
+        for (size_t i = 0; i < collisions[c].contacts.size(); ++i)
+        {
+            CollisionContact& contact = collisions[c].contacts[i];
+
+            // Check each body in this contact
+            for (unsigned int b = 0; b < 2; ++b)
+            {
+                if (!collisions[c].objects[b]) continue;
+
+                // Check for a match with each body in the resolved contact
+                for (unsigned int d = 0; d < 2; ++d)
+                {
+                    if (collisions[c].objects[b] == resolved_collision.objects[d])
+                    {
+                        // Calculate the change in velocity at the contact point
+                        linkit::Vector3 delta_vel = rotation_change[d] % contact.relative_positions[b];
+                        delta_vel += velocity_change[d];
+
+                        // Transform to contact space
+                        linkit::Matrix3 contact_to_world_inverse = contact.contact_basis_to_world_inverse();
+                        linkit::Vector3 delta_contact_vel = contact_to_world_inverse * delta_vel;
+
+                        // The sign depends on:
+                        // - d: which body in the resolved contact (0 had velocity subtracted, 1 had velocity added)
+                        // - b: which body in this contact (0 contributes positive, 1 contributes negative to closing velocity)
+                        // Body 0 of resolved had velocity decreased, body 1 had velocity increased
+                        // For closing velocity = v0 - v1:
+                        // If b==0 and d==0: v0 decreased, so closing velocity decreased
+                        // If b==0 and d==1: this body's velocity increased, so closing velocity increased
+                        // If b==1 and d==0: this body's velocity decreased, so closing velocity increased
+                        // If b==1 and d==1: v1 increased, so closing velocity decreased
+                        linkit::real sign = (b == d) ? -1.0f : 1.0f;
+                        contact.contact_velocity += delta_contact_vel * sign;
+
+                        // Recalculate desired delta velocity
+                        contact.calculate_desired_delta_velocity(collisions[c].restitution);
+                    }
+                }
+            }
+        }
+    }
+}
+
+void CollisionHandler::resolve_penetrations()
+{
+    if (collisions.empty()) return;
+
+    // Iteratively resolve penetrations, worst-first across all contacts
+    for (unsigned int iteration = 0; iteration < position_iterations_; ++iteration)
+    {
+        ContactRef worst = find_worst_penetration();
+
+        // No more contacts to resolve
+        if (worst.collision_index == SIZE_MAX) break;
+
+        CollisionData& collision = collisions[worst.collision_index];
+        CollisionContact& contact = collision.contacts[worst.contact_index];
+
+        linkit::Vector3 linear_change[2];
+        linkit::Vector3 angular_change[2];
+
+        resolve_contact_penetration(collision, contact, linear_change, angular_change);
+
+        // NOTE: Cross-contact update removed for stability
+        // The iteration will naturally handle remaining penetrations
+    }
 }
 
 void CollisionHandler::clear_contacts()
 {
     collisions.clear();
 }
+
+void CollisionHandler::resolve_contact_penetration(
+    CollisionData& collision_data,
+    CollisionContact& contact,
+    linkit::Vector3 linear_change[2],
+    linkit::Vector3 angular_change[2]
+)
+{
+    linkit::real angular_inertia_contact[2];
+    linkit::real angular_move[2];
+
+    linkit::real linear_inertia_contact[2];
+    linkit::real linear_move[2];
+
+    linkit::real total_inertia = 0;
+    for (int i = 0; i < 2; i++)
+    {
+        GameObject* body = collision_data.objects[i];
+        linkit::Matrix3 inverse_inertia_tensor = body->rb._local_inverse_inertia_tensor;
+
+        linkit::Vector3 torque = contact.relative_positions[i] % contact.collision_normal;
+        linkit::Vector3 delta_angular_velocity = inverse_inertia_tensor * torque;
+        linkit::Vector3 angular_inertia_world = (delta_angular_velocity % contact.relative_positions[i]);
+        angular_inertia_contact[i] = angular_inertia_world * contact.collision_normal;
+        linear_inertia_contact[i] = body->rb.inverse_mass;
+        total_inertia += angular_inertia_contact[i] + linear_inertia_contact[i];
+    }
+
+    // Avoid division by zero
+    if (total_inertia < linkit::REAL_EPSILON)
+    {
+        linear_change[0] = linear_change[1] = linkit::Vector3(0, 0, 0);
+        angular_change[0] = angular_change[1] = linkit::Vector3(0, 0, 0);
+        return;
+    }
+
+    const linkit::real inverse_total_inertia = 1.0f / total_inertia;
+
+    angular_move[0] = -contact.penetration_depth * angular_inertia_contact[0] * inverse_total_inertia;
+    angular_move[1] = contact.penetration_depth * angular_inertia_contact[1] * inverse_total_inertia;
+
+    linear_move[0] = -contact.penetration_depth * linear_inertia_contact[0] * inverse_total_inertia;
+    linear_move[1] = contact.penetration_depth * linear_inertia_contact[1] * inverse_total_inertia;
+
+    for (int i = 0; i < 2; i++)
+    {
+        GameObject* body = collision_data.objects[i];
+
+        // Angular resolution with limit
+        linkit::real limit = 0.2f * contact.relative_positions[i].magnitude();
+        if (linkit::real_abs(angular_move[i]) > limit)
+        {
+            linkit::real total_move = linear_move[i] + angular_move[i];
+            if (angular_move[i] >= 0)
+            {
+                angular_move[i] = limit;
+            }
+            else
+            {
+                angular_move[i] = -limit;
+            }
+            linear_move[i] = total_move - angular_move[i];
+        }
+
+        // Calculate angular change
+        if (linkit::real_abs(angular_inertia_contact[i]) > linkit::REAL_EPSILON)
+        {
+            linkit::Matrix3 inverse_inertia_tensor = body->rb._local_inverse_inertia_tensor;
+            linkit::Vector3 impulsive_torque = contact.relative_positions[i] % contact.collision_normal;
+            linkit::Vector3 impulse_per_move = inverse_inertia_tensor * impulsive_torque;
+            linkit::Vector3 rotation_per_move = impulse_per_move * (1.0f / angular_inertia_contact[i]);
+            angular_change[i] = rotation_per_move * angular_move[i];
+
+            // Apply angular change
+            if (std::isfinite(angular_change[i].x) && std::isfinite(angular_change[i].y) && std::isfinite(angular_change[i].z))
+            {
+                body->rb.transform.rotation.add_scaled_vector(angular_change[i], 1);
+                body->rb.transform.rotation.normalize();
+            }
+        }
+        else
+        {
+            angular_change[i] = linkit::Vector3(0, 0, 0);
+        }
+
+        // Calculate and apply linear change
+        linear_change[i] = contact.collision_normal * linear_move[i];
+        if (std::isfinite(linear_change[i].x) && std::isfinite(linear_change[i].y) && std::isfinite(linear_change[i].z))
+        {
+            body->rb.transform.translate(linear_change[i]);
+        }
+    }
+
+    // Mark this contact as resolved
+    contact.penetration_depth = 0;
+}
+
+void CollisionHandler::update_penetrations_after_resolution(
+    const ContactRef& resolved,
+    const linkit::Vector3 linear_change[2],
+    const linkit::Vector3 angular_change[2]
+)
+{
+    const CollisionData& resolved_collision = collisions[resolved.collision_index];
+
+    for (size_t c = 0; c < collisions.size(); ++c)
+    {
+        for (size_t i = 0; i < collisions[c].contacts.size(); ++i)
+        {
+            // Skip the contact we just resolved
+            if (c == resolved.collision_index && i == resolved.contact_index) continue;
+
+            CollisionContact& contact = collisions[c].contacts[i];
+
+            // Check each body in this contact
+            for (unsigned int b = 0; b < 2; ++b)
+            {
+                if (!collisions[c].objects[b]) continue;
+
+                // Check for a match with each body in the resolved contact
+                for (unsigned int d = 0; d < 2; ++d)
+                {
+                    if (collisions[c].objects[b] == resolved_collision.objects[d])
+                    {
+                        // Calculate the change in position at the contact point
+                        // delta_position = linear_change + angular_change × relative_position
+                        linkit::Vector3 delta_position = angular_change[d] % contact.relative_positions[b];
+                        delta_position += linear_change[d];
+
+                        // Project onto contact normal
+                        linkit::real delta_along_normal = delta_position * contact.collision_normal;
+
+                        // The sign convention from the book:
+                        // - Body 0 of a contact contributes positively to penetration when it moves into body 1
+                        // - Body 1 of a contact contributes negatively (or we subtract its contribution)
+                        // So if b == 0, we subtract the delta (body moved, reducing penetration if moving apart)
+                        // If b == 1, we add the delta
+                        if (b == 0)
+                        {
+                            contact.penetration_depth -= delta_along_normal;
+                        }
+                        else
+                        {
+                            contact.penetration_depth += delta_along_normal;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 
 // ============================================================================
 // Helper functions for multi-point box-box contact generation

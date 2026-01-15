@@ -108,6 +108,7 @@ else()
     message(FATAL_ERROR "GLAD not found at ${GLAD_DIR}. Please ensure external/glad is present.")
 endif()
 
+
 # --- 7. ImGui (Git Submodule) ---
 set(IMGUI_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/external/imgui")
 if(EXISTS "${IMGUI_ROOT}/imgui.cpp")
@@ -137,8 +138,19 @@ else()
     )
 endif()
 
+
+# ---8. Json (External Library) ---
+FetchContent_Declare(json
+        GIT_REPOSITORY https://github.com/nlohmann/json
+        GIT_TAG v3.12.0
+)
+FetchContent_MakeAvailable(json)
+
+
 # --- 8. Linkit (External Library) ---
 add_subdirectory(external/linkit)
+
+
 
 # --- 9. Project Subdirectories (must come after all dependencies are defined) ---
 add_subdirectory(src/rendering)
@@ -173,9 +185,12 @@ set(SOURCES
     src/rendering/engine_ui.cpp
     src/core/engine.cpp
         src/physics/forces/object_anchored_spring.cpp
+        src/core/scene_serializer.cpp
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})
+
+
 
 # --- 11. Resource Copying ---
 # Create resource directories in build folder
@@ -225,6 +240,16 @@ if(EXISTS "${CMAKE_SOURCE_DIR}/resources/fonts")
     )
 endif()
 
+
+if(EXISTS "${CMAKE_SOURCE_DIR}/resources/scenes")
+    add_custom_command(
+            TARGET ${PROJECT_NAME} PRE_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${CMAKE_SOURCE_DIR}/resources/scenes"
+            "${CMAKE_BINARY_DIR}/resources/scenes"
+            COMMENT "Copying scene files to build directory"
+    )
+endif()
 # --- 12. Resources Path Definition ---
 set(RESOURCES_DIR "${CMAKE_BINARY_DIR}/resources")
 target_compile_definitions(${PROJECT_NAME} PRIVATE "RESOURCES_PATH=\"${RESOURCES_DIR}\"")
@@ -242,6 +267,7 @@ target_link_libraries(${PROJECT_NAME}
         core
         assimp::assimp
         stb_image
+        nlohmann_json::nlohmann_json
     INTERFACE
         linkit
 )
@@ -253,3 +279,4 @@ target_include_directories(${PROJECT_NAME}
         "${CMAKE_CURRENT_SOURCE_DIR}/external"
         "${CMAKE_CURRENT_SOURCE_DIR}/resources"
 )
+

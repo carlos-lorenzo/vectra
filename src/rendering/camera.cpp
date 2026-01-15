@@ -20,7 +20,7 @@ Camera::Camera()
     nearPlane = 0.01f;
     farPlane = 100.0f;
 
-    movement_speed = 3;
+    movement_speed = 2;
     mouse_sensitivity = 0.003;
     max_pitch = linkit::PI * 0.5 - 0.001;
 

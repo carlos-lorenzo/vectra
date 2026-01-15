@@ -17,4 +17,5 @@ target_link_libraries(core
         assimp::assimp
         glfw
         stb_image
+        nlohmann_json::nlohmann_json
 )

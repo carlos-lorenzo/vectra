@@ -7,13 +7,11 @@
 
 class AnchoredSpring : public ForceGenerator
 {
-protected:
+public:
     linkit::Vector3 anchor_point;
     linkit::real spring_constant;
     linkit::real rest_length;
     linkit::real damping;
-
-public:
     explicit AnchoredSpring(const linkit::Vector3& anchor_point, linkit::real spring_constant, linkit::real rest_length, linkit::real damping);
     void update_force(GameObject& obj, linkit::real dt) override;
 };

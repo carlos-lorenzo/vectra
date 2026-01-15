@@ -23,6 +23,7 @@ Scene::Scene()
     bvh_node_map = std::unordered_map<GameObject*, BVHNode<BoundingSphere>*>();
     collision_handler = CollisionHandler();
     name_counters_ = std::unordered_map<std::string, int>();
+    name = "New Scene";
 }
 
 // In Scene class (private):
@@ -145,8 +146,8 @@ void Scene::step(const linkit::real dt)
     std::vector<PotentialContact> possible_contacts;
     possible_contacts = bvh_root->potential_contacts_inside(possible_contacts);
     collision_handler.narrow_phase(possible_contacts);
-    collision_handler.solve_contacts();
-    collision_handler.resolve_interpretations();
+    collision_handler.solve_contacts(dt);
+    collision_handler.resolve_penetrations();
 
 
     collision_handler.clear_contacts();
@@ -167,4 +168,12 @@ SceneSnapshot Scene::create_snapshot() const
 
 
     return snapshot;
+}
+
+void Scene::save_scene_to_file(const std::string& filename) const
+{
+}
+
+Scene Scene::load_scene_from_file(const std::string& filename)
+{
 }

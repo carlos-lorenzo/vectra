@@ -1,0 +1,62 @@
+LightSource scene_light = LightSource(glm::vec3(0, 10, 10), glm::vec3(1.0, 1.0, 0.8));
+scene->add_light_source(scene_light);
+
+scene->camera.transform.position = linkit::Vector3(0.0f, 10.0f, 15.0f);
+
+
+auto gravity = std::make_shared<SimpleGravity>(linkit::Vector3(0.0, -9.81, 0.0));
+
+float wall_height = 5.0f;
+float floor_size = 100.0f;
+float wall_thickness = 1.0f;
+
+
+// Box container
+GameObject floor;
+floor.rb.mass = 0;
+floor.rb.inverse_mass = 0;
+
+floor.rb.transform.scale = linkit::Vector3(floor_size, wall_thickness, floor_size);
+floor.set_collider_type("ColliderBox");
+floor.set_shape("cube");
+scene->add_game_object(floor);
+
+
+
+
+// Falling Balls
+GameObject ball;
+ball.rb.mass = 1.0f;
+ball.rb.inverse_mass = 1.0f / ball.rb.mass;
+ball.rb.transform.position = linkit::Vector3(0.0f, 25.0f, 0.0f);
+ball.rb.transform.scale = linkit::Vector3(1.0f, 1.0f, 1.0f);
+ball.set_collider_type("ColliderSphere");
+ball.set_shape("sphere");
+scene->add_game_object(ball);
+
+GameObject ball2;
+ball2.rb.mass = 1.0f;
+ball2.rb.inverse_mass = 1.0f / ball2.rb.mass;
+ball2.rb.transform.position = linkit::Vector3(0.0f, 35.0f, 0.0f);
+ball2.rb.transform.scale = linkit::Vector3(1.0f, 1.0f, 1.0f);
+ball2.set_collider_type("ColliderSphere");
+ball2.set_shape("sphere");
+scene->add_game_object(ball2);
+
+
+scene->force_registry.add(&scene->game_objects[1], gravity);
+scene->force_registry.add(&scene->game_objects[2], std::make_shared<ObjectAnchoredSpring>(&scene->game_objects[1], 1000.0f, 10.0f, 0.0f));
+//scene->force_registry.add(&scene->game_objects[3], gravity);
+
+// Prism to be interacted with (will be used to test constraints once they're implemented)
+GameObject prism;
+prism.rb.mass = 2.0f;
+prism.rb.inverse_mass = 1.0f / prism.rb.mass;
+prism.rb.transform.position = linkit::Vector3(-5.0f, 15.0f, 0.0f);
+prism.rb.transform.scale = linkit::Vector3(5.0f, 0.5f, 3.0f);
+prism.set_collider_type("ColliderBox");
+prism.set_shape("cube");
+scene->add_game_object(prism);
+
+
+renderer->setup_from_scene(*scene);

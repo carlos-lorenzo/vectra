@@ -1,0 +1,253 @@
+{
+    "camera": {
+        "fov": 90.0,
+        "transform": {
+            "position": [
+                0.0,
+                15.0,
+                15.0
+            ],
+            "rotation": [
+                1.0,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ]
+        }
+    },
+    "lights": [
+        {
+            "colour": [
+                1.0,
+                1.0,
+                0.800000011920929
+            ],
+            "position": [
+                0.0,
+                10.0,
+                10.0
+            ]
+        }
+    ],
+    "name": "New Scene",
+    "objects": [
+        {
+            "collider_type": "ColliderBox",
+            "force_generators": [],
+            "model_name": "cube",
+            "name": "cube_0",
+            "rigidbody": {
+                "acceleration": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "angular_acceleration": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "angular_velocity": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "mass": 0.0,
+                "transform": {
+                    "position": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "rotation": [
+                        -1.0,
+                        -0.0,
+                        -0.0,
+                        -2.0682310711021444e-13
+                    ],
+                    "scale": [
+                        100.0,
+                        1.0,
+                        100.0
+                    ]
+                },
+                "velocity": [
+                    0.0,
+                    0.0,
+                    0.0
+                ]
+            }
+        },
+        {
+            "collider_type": "ColliderSphere",
+            "force_generators": [
+                {
+                    "field": [
+                        0.0,
+                        -9.81,
+                        0.0
+                    ],
+                    "type": "simple_gravity"
+                }
+            ],
+            "model_name": "sphere",
+            "name": "sphere_0",
+            "rigidbody": {
+                "acceleration": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "angular_acceleration": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "angular_velocity": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "mass": 1.0,
+                "transform": {
+                    "position": [
+                        0.0,
+                        25.0,
+                        0.0
+                    ],
+                    "rotation": [
+                        -1.0,
+                        -0.0,
+                        -0.0,
+                        -2.0682310711021444e-13
+                    ],
+                    "scale": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ]
+                },
+                "velocity": [
+                    0.0,
+                    0.0,
+                    0.0
+                ]
+            }
+        },
+        {
+            "collider_type": "ColliderSphere",
+            "force_generators": [
+                {
+                    "damping": 0.0,
+                    "object_index": 1,
+                    "rest_length": 10.0,
+                    "spring_constant": 1000.0,
+                    "type": "object_anchored_spring"
+                },
+                {
+                    "field": [
+                        0.0,
+                        -9.81,
+                        0.0
+                    ],
+                    "type": "simple_gravity"
+                }
+            ],
+            "model_name": "sphere",
+            "name": "sphere_1",
+            "rigidbody": {
+                "acceleration": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "angular_acceleration": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "angular_velocity": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "mass": 1.0,
+                "transform": {
+                    "position": [
+                        0.0,
+                        35.0,
+                        0.0
+                    ],
+                    "rotation": [
+                        -1.0,
+                        -0.0,
+                        -0.0,
+                        -2.0682310711021444e-13
+                    ],
+                    "scale": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ]
+                },
+                "velocity": [
+                    0.0,
+                    0.0,
+                    0.0
+                ]
+            }
+        },
+        {
+            "collider_type": "ColliderBox",
+            "force_generators": [],
+            "model_name": "cube",
+            "name": "cube_1",
+            "rigidbody": {
+                "acceleration": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "angular_acceleration": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "angular_velocity": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "mass": 2.0,
+                "transform": {
+                    "position": [
+                        -5.0,
+                        15.0,
+                        0.0
+                    ],
+                    "rotation": [
+                        -1.0,
+                        -0.0,
+                        -0.0,
+                        -2.0682310711021444e-13
+                    ],
+                    "scale": [
+                        5.0,
+                        0.5,
+                        3.0
+                    ]
+                },
+                "velocity": [
+                    0.0,
+                    0.0,
+                    0.0
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,200 @@
+LightSource scene_light = LightSource(glm::vec3(0, 10, 10), glm::vec3(1.0, 1.0, 0.8));
+    scene->add_light_source(scene_light);
+
+    scene->camera.transform.position = linkit::Vector3(0.0f, 10.0f, 15.0f);
+
+    auto gravity = std::make_shared<SimpleGravity>(linkit::Vector3(0.0, -9.81, 0.0));
+
+    float floor_size = 100.0f;
+    float wall_thickness = 1.0f;
+
+    // Box container (floor)
+    GameObject floor;
+    floor.rb.mass = 0;
+    floor.rb.inverse_mass = 0;
+    floor.rb.transform.scale = linkit::Vector3(floor_size, wall_thickness, floor_size);
+    floor.set_collider_type("ColliderBox");
+    floor.set_shape("cube");
+    scene->add_game_object(floor);
+
+    // =========================================================================
+    // Soft Body Prism Configuration (Tweakable Parameters)
+    // =========================================================================
+    const linkit::real soft_body_width = 4.0;           // X dimension
+    const linkit::real soft_body_height = 3.0;          // Y dimension
+    const linkit::real soft_body_depth = 4.0;           // Z dimension
+    const linkit::real particle_spacing = 1.0;          // Distance between particles
+    const linkit::real spring_constant = 500.0;         // Spring stiffness
+    const linkit::real spring_damping = 5.0;            // Damping coefficient
+    const linkit::real particle_mass = 0.5;             // Mass of each particle
+    const linkit::real particle_radius = 0.2;           // Visual/collision radius
+    const linkit::Vector3 soft_body_origin(0.0, 15.0, 0.0);  // Center position
+
+    // Calculate particle counts along each axis
+    const int particles_x = static_cast<int>(std::ceil(soft_body_width / particle_spacing)) + 1;
+    const int particles_y = static_cast<int>(std::ceil(soft_body_height / particle_spacing)) + 1;
+    const int particles_z = static_cast<int>(std::ceil(soft_body_depth / particle_spacing)) + 1;
+
+    // Calculate actual dimensions based on particle count
+    const linkit::real actual_width = static_cast<linkit::real>(particles_x - 1) * particle_spacing;
+    const linkit::real actual_height = static_cast<linkit::real>(particles_y - 1) * particle_spacing;
+    const linkit::real actual_depth = static_cast<linkit::real>(particles_z - 1) * particle_spacing;
+
+    // Starting offset to center the soft body at origin
+    const linkit::real start_x = soft_body_origin.x - actual_width / 2.0;
+    const linkit::real start_y = soft_body_origin.y - actual_height / 2.0;
+    const linkit::real start_z = soft_body_origin.z - actual_depth / 2.0;
+
+    // Store the starting index of soft body particles
+    const size_t soft_body_start_index = scene->game_objects.size();
+
+    // Lambda to get particle index from 3D coordinates
+    auto get_particle_index = [&](int x, int y, int z) -> size_t {
+        return soft_body_start_index + x + y * particles_x + z * particles_x * particles_y;
+    };
+
+    // Create particles for the soft body prism
+    for (int z = 0; z < particles_z; ++z) {
+        for (int y = 0; y < particles_y; ++y) {
+            for (int x = 0; x < particles_x; ++x) {
+                GameObject particle;
+                particle.rb.mass = particle_mass;
+                particle.rb.inverse_mass = 1.0 / particle_mass;
+                particle.rb.transform.position = linkit::Vector3(
+                    start_x + static_cast<linkit::real>(x) * particle_spacing,
+                    start_y + static_cast<linkit::real>(y) * particle_spacing,
+                    start_z + static_cast<linkit::real>(z) * particle_spacing
+                );
+                particle.rb.transform.scale = linkit::Vector3(
+                    particle_radius,
+                    particle_radius,
+                    particle_radius
+                );
+                particle.set_collider_type("ColliderSphere");
+                particle.set_shape("sphere");
+                scene->add_game_object(particle);
+            }
+        }
+    }
+
+    // Apply gravity to all soft body particles
+    const size_t total_particles = particles_x * particles_y * particles_z;
+    for (size_t i = 0; i < total_particles; ++i) {
+        scene->force_registry.add(&scene->game_objects[soft_body_start_index + i], gravity);
+    }
+
+    // Connect particles with springs (structural springs)
+    for (int z = 0; z < particles_z; ++z) {
+        for (int y = 0; y < particles_y; ++y) {
+            for (int x = 0; x < particles_x; ++x) {
+                size_t current_index = get_particle_index(x, y, z);
+                GameObject* current_particle = &scene->game_objects[current_index];
+
+                // Structural springs (direct neighbors)
+                // Connect to +X neighbor
+                if (x < particles_x - 1) {
+                    size_t neighbor_index = get_particle_index(x + 1, y, z);
+                    scene->force_registry.add(
+                        current_particle,
+                        std::make_shared<ObjectAnchoredSpring>(
+                            &scene->game_objects[neighbor_index],
+                            spring_constant,
+                            particle_spacing,
+                            spring_damping
+                        )
+                    );
+                }
+
+                // Connect to +Y neighbor
+                if (y < particles_y - 1) {
+                    size_t neighbor_index = get_particle_index(x, y + 1, z);
+                    scene->force_registry.add(
+                        current_particle,
+                        std::make_shared<ObjectAnchoredSpring>(
+                            &scene->game_objects[neighbor_index],
+                            spring_constant,
+                            particle_spacing,
+                            spring_damping
+                        )
+                    );
+                }
+
+                // Connect to +Z neighbor
+                if (z < particles_z - 1) {
+                    size_t neighbor_index = get_particle_index(x, y, z + 1);
+                    scene->force_registry.add(
+                        current_particle,
+                        std::make_shared<ObjectAnchoredSpring>(
+                            &scene->game_objects[neighbor_index],
+                            spring_constant,
+                            particle_spacing,
+                            spring_damping
+                        )
+                    );
+                }
+
+                // Shear springs (diagonal neighbors for stability)
+                // XY diagonal
+                if (x < particles_x - 1 && y < particles_y - 1) {
+                    size_t neighbor_index = get_particle_index(x + 1, y + 1, z);
+                    linkit::real diagonal_length = particle_spacing * std::sqrt(2.0);
+                    scene->force_registry.add(
+                        current_particle,
+                        std::make_shared<ObjectAnchoredSpring>(
+                            &scene->game_objects[neighbor_index],
+                            spring_constant * 0.5,
+                            diagonal_length,
+                            spring_damping
+                        )
+                    );
+                }
+
+                // XZ diagonal
+                if (x < particles_x - 1 && z < particles_z - 1) {
+                    size_t neighbor_index = get_particle_index(x + 1, y, z + 1);
+                    linkit::real diagonal_length = particle_spacing * std::sqrt(2.0);
+                    scene->force_registry.add(
+                        current_particle,
+                        std::make_shared<ObjectAnchoredSpring>(
+                            &scene->game_objects[neighbor_index],
+                            spring_constant * 0.5,
+                            diagonal_length,
+                            spring_damping
+                        )
+                    );
+                }
+
+                // YZ diagonal
+                if (y < particles_y - 1 && z < particles_z - 1) {
+                    size_t neighbor_index = get_particle_index(x, y + 1, z + 1);
+                    linkit::real diagonal_length = particle_spacing * std::sqrt(2.0);
+                    scene->force_registry.add(
+                        current_particle,
+                        std::make_shared<ObjectAnchoredSpring>(
+                            &scene->game_objects[neighbor_index],
+                            spring_constant * 0.5,
+                            diagonal_length,
+                            spring_damping
+                        )
+                    );
+                }
+
+                // XYZ diagonal (body diagonal for additional stability)
+                if (x < particles_x - 1 && y < particles_y - 1 && z < particles_z - 1) {
+                    size_t neighbor_index = get_particle_index(x + 1, y + 1, z + 1);
+                    linkit::real body_diagonal_length = particle_spacing * std::sqrt(3.0);
+                    scene->force_registry.add(
+                        current_particle,
+                        std::make_shared<ObjectAnchoredSpring>(
+                            &scene->game_objects[neighbor_index],
+                            spring_constant * 0.3,
+                            body_diagonal_length,
+                            spring_damping
+                        )
+                    );
+                }
+            }
+        }
+    }
+
+    renderer->setup_from_scene(*scene);

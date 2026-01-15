@@ -4,6 +4,7 @@
 
 #ifndef VECTRA_RIGIDBODY_H
 #define VECTRA_RIGIDBODY_H
+
 #include "transform.h"
 #include "linkit/linkit.h"
 
@@ -21,6 +22,9 @@ class Rigidbody
 
         linkit::Vector3 accumulated_force;
         linkit::Vector3 accumulated_torque;
+
+        // Stores the acceleration from the previous frame for resting contact handling
+        linkit::Vector3 last_frame_acceleration;
 
         linkit::real mass;
         linkit::real inverse_mass;

@@ -20,78 +20,49 @@ Engine::Engine() : render_queue_()
     state_ = EngineState();
     renderer = std::make_unique<Renderer>(&state_);
     scene = std::make_unique<Scene>();
+
+    // Set collision resolution parameters from engine state
+    scene->collision_handler.set_parameters(
+        state_.position_iterations,
+        state_.velocity_iterations,
+        state_.position_epsilon,
+        state_.velocity_epsilon
+    );
+    serializer_ = SceneSerializer();
+
     ui = std::make_unique<EngineUI>();
     EngineUI::initialize(renderer->get_window());
 
 }
 
-void Engine::load_scene()
+void Engine::load_scene(const std::string& filename)
 {
-    LightSource scene_light = LightSource(glm::vec3(0, 10, 10), glm::vec3(1.0, 1.0, 0.8));
-    scene->add_light_source(scene_light);
+    auto result = serializer_.deserialize_scene(filename);
 
-    scene->camera.transform.position = linkit::Vector3(0.0f, 10.0f, 15.0f);
+    // Log errors
+    for (const auto& error : result.errors)
+    {
+        std::cerr << error << std::endl;
+    }
 
+    // Abort if there are errors
+    if (result.has_errors())
+    {
+        std::cerr << "Failed to load scene: " << filename << std::endl;
+        return;
+    }
 
-    auto gravity = std::make_shared<SimpleGravity>(linkit::Vector3(0.0, -9.81, 0.0));
+    // Log warnings
+    for (const auto& warning : result.warnings)
+    {
+        std::cout << warning << std::endl;
+    }
 
-    float wall_height = 5.0f;
-    float floor_size = 100.0f;
-    float wall_thickness = 1.0f;
-
-
-    // Box container
-    GameObject floor;
-    floor.rb.mass = 0;
-    floor.rb.inverse_mass = 0;
-
-    floor.rb.transform.scale = linkit::Vector3(floor_size, wall_thickness, floor_size);
-    floor.set_collider_type("ColliderBox");
-    floor.set_shape("cube");
-    scene->add_game_object(floor);
-
-
-
-
-    // Falling Balls
-    GameObject ball;
-    ball.rb.mass = 1.0f;
-    ball.rb.inverse_mass = 1.0f / ball.rb.mass;
-    ball.rb.transform.position = linkit::Vector3(0.0f, 25.0f, 0.0f);
-    ball.rb.transform.scale = linkit::Vector3(1.0f, 1.0f, 1.0f);
-    ball.set_collider_type("ColliderSphere");
-    ball.set_shape("sphere");
-    scene->add_game_object(ball);
-
-    GameObject ball2;
-    ball2.rb.mass = 1.0f;
-    ball2.rb.inverse_mass = 1.0f / ball2.rb.mass;
-    ball2.rb.transform.position = linkit::Vector3(0.0f, 35.0f, 0.0f);
-    ball2.rb.transform.scale = linkit::Vector3(1.0f, 1.0f, 1.0f);
-    ball2.set_collider_type("ColliderSphere");
-    ball2.set_shape("sphere");
-    scene->add_game_object(ball2);
-
-
-    scene->force_registry.add(&scene->game_objects[1], gravity);
-    scene->force_registry.add(&scene->game_objects[2], std::make_shared<ObjectAnchoredSpring>(&scene->game_objects[1], 1000.0f, 10.0f, 0.0f));
-    //scene->force_registry.add(&scene->game_objects[3], gravity);
-
-    // Prism to be interacted with (will be used to test constraints once they're implemented)
-    GameObject prism;
-    prism.rb.mass = 2.0f;
-    prism.rb.inverse_mass = 1.0f / prism.rb.mass;
-    prism.rb.transform.position = linkit::Vector3(-5.0f, 15.0f, 0.0f);
-    prism.rb.transform.scale = linkit::Vector3(5.0f, 0.5f, 3.0f);
-    prism.set_collider_type("ColliderBox");
-    prism.set_shape("cube");
-    scene->add_game_object(prism);
-
-
+    *scene = std::move(result.scene);
+    state_.loaded_scene = filename;
     renderer->setup_from_scene(*scene);
-
-
 }
+
 
 void Engine::run_single_thread()
 {
@@ -108,6 +79,15 @@ void Engine::run_single_thread()
 
 
     while (!glfwWindowShouldClose(window)) {
+        // Handle scene restart
+        if (state_.scene_should_restart)
+        {
+            load_scene(state_.loaded_scene);
+            state_.scene_should_restart = false;
+            accumulator = 0.0;
+            currentTime = glfwGetTime();
+        }
+
         double new_time = glfwGetTime();
         double frame_time = new_time - currentTime;
         currentTime = new_time;
@@ -131,7 +111,7 @@ void Engine::run_single_thread()
         // Clear the main window
         Renderer::begin_frame();
 
-        // Create scene snapshot
+        // Create a scene snapshot
         auto scene_snapshot = scene->create_snapshot();
 
         // Render scene to framebuffer
@@ -166,6 +146,15 @@ void Engine::physics_thread_func()
 
     while (state_.is_running)
     {
+        // Skip physics while scene is being restarted (handled by rendering thread)
+        if (state_.scene_should_restart)
+        {
+            current_time = Clock::now();
+            accumulator = 0.0;
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            continue;
+        }
+
         auto new_time = Clock::now();
         Duration frame_time = new_time - current_time;
         current_time = new_time;
@@ -204,6 +193,13 @@ void Engine::rendering_thread_func()
     auto window = renderer->get_window();
 
     while (!glfwWindowShouldClose(window)) {
+        // Handle scene restart on the rendering thread (has OpenGL context)
+        if (state_.scene_should_restart)
+        {
+            load_scene(state_.loaded_scene);
+            state_.scene_should_restart = false;
+        }
+
         double new_time = glfwGetTime();
         double frame_time = new_time - currentTime;
         currentTime = new_time;

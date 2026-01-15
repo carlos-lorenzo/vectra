@@ -4,7 +4,9 @@ CollisionContact::CollisionContact(const linkit::Vector3& collision_point, const
 collision_point(collision_point),
 collision_normal(collision_normal),
 penetration_depth(penetration_depth),
-feature()
+feature(),
+contact_velocity(0, 0, 0),
+desired_delta_velocity(0)
 {
     relative_positions = std::vector<linkit::Vector3>();
 }
@@ -14,7 +16,9 @@ CollisionContact::CollisionContact(const linkit::Vector3& collision_point, const
 collision_point(collision_point),
 collision_normal(collision_normal),
 penetration_depth(penetration_depth),
-feature(feature)
+feature(feature),
+contact_velocity(0, 0, 0),
+desired_delta_velocity(0)
 {
     relative_positions = std::vector<linkit::Vector3>();
 }
@@ -55,5 +59,31 @@ Matrix3 CollisionContact::contact_basis_to_world_inverse() const
     Matrix3 contact_to_world = contact_basis_to_world();
     // Rotation matrix
     return contact_to_world.transposed();
+}
+
+void CollisionContact::calculate_desired_delta_velocity(linkit::real restitution)
+{
+    // contact_velocity.x is the separating velocity along the contact normal
+    // Positive means separating, negative means closing
+
+    // If objects are already separating, no impulse needed
+    if (contact_velocity.x >= 0)
+    {
+        desired_delta_velocity = 0;
+        return;
+    }
+
+    // If the velocity is very slow, limit the restitution to avoid jitter
+    constexpr linkit::real velocity_limit = 0.25f;
+    linkit::real effective_restitution = restitution;
+    if (real_abs(contact_velocity.x) < velocity_limit)
+    {
+        effective_restitution = 0.0f;
+    }
+
+    // We want to reverse the closing velocity and add bounce
+    // current velocity is negative (closing), we want positive (separating)
+    // desired = -current * (1 + restitution)
+    desired_delta_velocity = -contact_velocity.x * (1.0f + effective_restitution);
 }
 

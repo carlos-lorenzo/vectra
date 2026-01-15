@@ -9,7 +9,7 @@ void CollisionData::add_contact(const CollisionContact& contact)
     {
         return;
     }
-    restitution = 1.0f;//0.3;
+    restitution = 0.3f;
     contacts.push_back(contact);
     valid = true;
 }

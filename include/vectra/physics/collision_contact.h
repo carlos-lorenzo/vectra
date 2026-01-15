@@ -37,12 +37,16 @@ struct CollisionContact
     std::vector<linkit::Vector3> relative_positions;
     ContactFeature feature;  // For coherence tracking
 
+    // Velocity resolution data (computed during prepare phase)
+    linkit::Vector3 contact_velocity;       // Relative velocity in contact space
+    linkit::real desired_delta_velocity;    // Target velocity change for resolution
 
     CollisionContact(const linkit::Vector3& collision_point, const linkit::Vector3& collision_normal, linkit::real penetration_depth);
     CollisionContact(const linkit::Vector3& collision_point, const linkit::Vector3& collision_normal,
                      linkit::real penetration_depth, const ContactFeature& feature);
     [[nodiscard]] linkit::Matrix3 contact_basis_to_world() const;
     [[nodiscard]] linkit::Matrix3 contact_basis_to_world_inverse() const;
+    void calculate_desired_delta_velocity(linkit::real restitution);
 };
 
 #endif //VECTRA_COLLISION_CONTACT_H

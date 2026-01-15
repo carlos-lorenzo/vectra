@@ -28,5 +28,6 @@ private:
     void draw_hierarchy(const SceneSnapshot& scene_snapshot);
     void draw_inspector(const SceneSnapshot& scene_snapshot);
     void draw_scene_view(EngineState& state, GLuint scene_texture_id);
+    static void draw_restart_overlay();
 };
 #endif //VECTRA_ENGINE_UI_H

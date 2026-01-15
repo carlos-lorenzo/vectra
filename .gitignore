@@ -52,4 +52,4 @@ copilot.*
 cmake-build-debug
 cmake-build-release
 
-resources/Examples/
+Examples/drafts/

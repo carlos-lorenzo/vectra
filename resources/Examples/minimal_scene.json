@@ -1,0 +1,32 @@
+{
+    "objects": [
+        {
+            "model_name": "cube",
+            "rigidbody": {
+                "transform": {
+                    "scale": [100, 1, 100]
+                }
+            }
+        },
+        {
+            "model_name": "sphere",
+            "rigidbody": {
+                "transform": {
+                    "position": [0, 10, 0]
+                },
+                "mass": 1.0
+            },
+            "force_generators": [
+                {
+                    "type": "simple_gravity",
+                    "field": [0, -9.81, 0]
+                }
+            ]
+        }
+    ],
+    "lights": [
+        {
+            "position": [0, 20, 20]
+        }
+    ]
+}

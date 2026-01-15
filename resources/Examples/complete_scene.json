@@ -1,0 +1,142 @@
+{
+    "name": "Complete Example Scene",
+    "camera": {
+        "fov": 90.0,
+        "transform": {
+            "position": [0, 15, 25],
+            "rotation": [1, 0, 0, 0],
+            "scale": [1, 1, 1]
+        }
+    },
+    "objects": [
+        {
+            "name": "ground",
+            "model_name": "cube",
+            "collider_type": "ColliderBox",
+            "rigidbody": {
+                "transform": {
+                    "position": [0, 0, 0],
+                    "rotation": [1, 0, 0, 0],
+                    "scale": [100, 1, 100]
+                },
+                "mass": 0,
+                "velocity": [0, 0, 0],
+                "angular_velocity": [0, 0, 0],
+                "acceleration": [0, 0, 0],
+                "angular_acceleration": [0, 0, 0]
+            },
+            "force_generators": []
+        },
+        {
+            "name": "falling_sphere",
+            "model_name": "sphere",
+            "collider_type": "ColliderSphere",
+            "rigidbody": {
+                "transform": {
+                    "position": [0, 10, 0],
+                    "rotation": [1, 0, 0, 0],
+                    "scale": [1, 1, 1]
+                },
+                "mass": 1.0,
+                "velocity": [0, 0, 0],
+                "angular_velocity": [0, 0, 0],
+                "acceleration": [0, 0, 0],
+                "angular_acceleration": [0, 0, 0]
+            },
+            "force_generators": [
+                {
+                    "type": "simple_gravity",
+                    "field": [0, -9.81, 0]
+                }
+            ]
+        },
+        {
+            "name": "spring_anchor",
+            "model_name": "cube",
+            "collider_type": "ColliderBox",
+            "rigidbody": {
+                "transform": {
+                    "position": [10, 15, 0],
+                    "rotation": [1, 0, 0, 0],
+                    "scale": [0.5, 0.5, 0.5]
+                },
+                "mass": 0,
+                "velocity": [0, 0, 0],
+                "angular_velocity": [0, 0, 0],
+                "acceleration": [0, 0, 0],
+                "angular_acceleration": [0, 0, 0]
+            },
+            "force_generators": []
+        },
+        {
+            "name": "spring_bob",
+            "model_name": "sphere",
+            "collider_type": "ColliderSphere",
+            "rigidbody": {
+                "transform": {
+                    "position": [10, 8, 0],
+                    "rotation": [1, 0, 0, 0],
+                    "scale": [1, 1, 1]
+                },
+                "mass": 2.0,
+                "velocity": [2, 0, 0],
+                "angular_velocity": [0, 0, 0],
+                "acceleration": [0, 0, 0],
+                "angular_acceleration": [0, 0, 0]
+            },
+            "force_generators": [
+                {
+                    "type": "simple_gravity",
+                    "field": [0, -9.81, 0]
+                },
+                {
+                    "type": "object_anchored_spring",
+                    "object_index": 2,
+                    "spring_constant": 25.0,
+                    "rest_length": 5.0,
+                    "damping": 0.5
+                }
+            ]
+        },
+        {
+            "name": "anchored_cube",
+            "model_name": "cube",
+            "collider_type": "ColliderBox",
+            "rigidbody": {
+                "transform": {
+                    "position": [-10, 5, 0],
+                    "rotation": [1, 0, 0, 0],
+                    "scale": [1, 1, 1]
+                },
+                "mass": 1.5,
+                "velocity": [0, 0, 0],
+                "angular_velocity": [0, 0, 0],
+                "acceleration": [0, 0, 0],
+                "angular_acceleration": [0, 0, 0]
+            },
+            "force_generators": [
+                {
+                    "type": "simple_gravity",
+                    "field": [0, -9.81, 0]
+                },
+                {
+                    "type": "anchored_spring",
+                    "anchor_point": [-10, 15, 0],
+                    "spring_constant": 30.0,
+                    "rest_length": 8.0,
+                    "damping": 0.3
+                }
+            ]
+        }
+    ],
+    "lights": [
+        {
+            "position": [0, 20, 20],
+            "colour": [1.0, 1.0, 0.9]
+        },
+        {
+            "position": [-20, 15, -10],
+            "colour": [0.5, 0.5, 0.6]
+        }
+    ]
+}
