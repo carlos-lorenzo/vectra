@@ -6,21 +6,25 @@
 #include <imgui_impl_opengl3.h>
 
 
+// Define static color members
+ImVec4 EngineUI::color_background = ImVec4(0.157f, 0.165f, 0.212f, 1.0f);      // #282a36
+ImVec4 EngineUI::color_current_line = ImVec4(0.267f, 0.278f, 0.353f, 1.0f);    // #44475a
+ImVec4 EngineUI::color_foreground = ImVec4(0.973f, 0.973f, 0.949f, 1.0f);      // #f8f8f2
+ImVec4 EngineUI::color_comment = ImVec4(0.384f, 0.447f, 0.643f, 1.0f);         // #6272a4
+ImVec4 EngineUI::color_purple = ImVec4(0.741f, 0.576f, 0.976f, 1.0f);          // #bd93f9
+ImVec4 EngineUI::color_green = ImVec4(0.314f, 0.980f, 0.482f, 1.0f);           // #50fa7b
+ImVec4 EngineUI::color_pink = ImVec4(1.0f, 0.475f, 0.776f, 1.0f);              // #ff79c6
+ImVec4 EngineUI::color_cyan = ImVec4(0.545f, 0.914f, 0.992f, 1.0f);            // #8be9fd
+ImVec4 EngineUI::color_red = ImVec4(1.0f, 0.333f, 0.333f, 1.0f);               // #ff5555
+ImVec4 EngineUI::color_orange = ImVec4(1.0f, 0.725f, 0.424f, 1.0f);            // #ffb86c
+ImVec4 EngineUI::color_popup_bg = ImVec4(0.18f, 0.19f, 0.24f, 0.95f);
+ImVec4 EngineUI::color_modal_dim = ImVec4(0.0f, 0.0f, 0.0f, 0.6f);
+ImVec4 EngineUI::color_yellow = ImVec4(0.945, 0.980, 0.549, 1.0f);             // #f1fa8c
+
+
 void EngineUI::apply_dracula_theme()
 {
     ImGuiStyle& style = ImGui::GetStyle();
-
-    // Dracula color palette
-    ImVec4 background = ImVec4(0.157f, 0.165f, 0.212f, 1.0f);      // #282a36
-    ImVec4 current_line = ImVec4(0.267f, 0.278f, 0.353f, 1.0f);    // #44475a
-    ImVec4 foreground = ImVec4(0.973f, 0.973f, 0.949f, 1.0f);      // #f8f8f2
-    ImVec4 comment = ImVec4(0.384f, 0.447f, 0.643f, 1.0f);         // #6272a4
-    ImVec4 purple = ImVec4(0.741f, 0.576f, 0.976f, 1.0f);          // #bd93f9
-    ImVec4 green = ImVec4(0.314f, 0.980f, 0.482f, 1.0f);           // #50fa7b
-    ImVec4 pink = ImVec4(1.0f, 0.475f, 0.776f, 1.0f);              // #ff79c6
-    ImVec4 cyan = ImVec4(0.545f, 0.914f, 0.992f, 1.0f);            // #8be9fd
-    ImVec4 red = ImVec4(1.0f, 0.333f, 0.333f, 1.0f);               // #ff5555
-    ImVec4 orange = ImVec4(1.0f, 0.725f, 0.424f, 1.0f);            // #ffb86c
 
     // Godot-inspired clean styling
     style.WindowRounding = 4.0f;
@@ -42,93 +46,93 @@ void EngineUI::apply_dracula_theme()
     ImVec4* colors = style.Colors;
 
     // Window
-    colors[ImGuiCol_WindowBg] = background;
-    colors[ImGuiCol_ChildBg] = background;
-    colors[ImGuiCol_PopupBg] = ImVec4(0.18f, 0.19f, 0.24f, 0.95f);
+    colors[ImGuiCol_WindowBg] = color_background;
+    colors[ImGuiCol_ChildBg] = color_background;
+    colors[ImGuiCol_PopupBg] = color_popup_bg;
 
     // Borders
-    colors[ImGuiCol_Border] = current_line;
+    colors[ImGuiCol_Border] = color_current_line;
     colors[ImGuiCol_BorderShadow] = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
 
     // Frame (input fields, checkboxes, etc.)
-    colors[ImGuiCol_FrameBg] = current_line;
-    colors[ImGuiCol_FrameBgHovered] = ImVec4(0.31f, 0.32f, 0.40f, 1.0f);
-    colors[ImGuiCol_FrameBgActive] = ImVec4(0.35f, 0.36f, 0.45f, 1.0f);
+    colors[ImGuiCol_FrameBg] = color_current_line;
+    colors[ImGuiCol_FrameBgHovered] = ImVec4(color_current_line.x * 1.15f, color_current_line.y * 1.15f, color_current_line.z * 1.15f, 1.0f);
+    colors[ImGuiCol_FrameBgActive] = ImVec4(color_current_line.x * 1.3f, color_current_line.y * 1.3f, color_current_line.z * 1.3f, 1.0f);
 
     // Title bar
-    colors[ImGuiCol_TitleBg] = ImVec4(0.12f, 0.13f, 0.17f, 1.0f);
-    colors[ImGuiCol_TitleBgActive] = ImVec4(0.14f, 0.15f, 0.19f, 1.0f);
-    colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.12f, 0.13f, 0.17f, 0.75f);
+    colors[ImGuiCol_TitleBg] = ImVec4(color_background.x * 0.75f, color_background.y * 0.78f, color_background.z * 0.82f, 1.0f);
+    colors[ImGuiCol_TitleBgActive] = ImVec4(color_background.x * 0.85f, color_background.y * 0.88f, color_background.z * 0.9f, 1.0f);
+    colors[ImGuiCol_TitleBgCollapsed] = ImVec4(color_background.x * 0.75f, color_background.y * 0.78f, color_background.z * 0.82f, 0.75f);
 
     // Menu bar
-    colors[ImGuiCol_MenuBarBg] = ImVec4(0.14f, 0.15f, 0.19f, 1.0f);
+    colors[ImGuiCol_MenuBarBg] = ImVec4(color_background.x * 0.9f, color_background.y * 0.91f, color_background.z * 0.92f, 1.0f);
 
     // Scrollbar
-    colors[ImGuiCol_ScrollbarBg] = ImVec4(0.12f, 0.13f, 0.17f, 1.0f);
-    colors[ImGuiCol_ScrollbarGrab] = current_line;
-    colors[ImGuiCol_ScrollbarGrabHovered] = comment;
-    colors[ImGuiCol_ScrollbarGrabActive] = purple;
+    colors[ImGuiCol_ScrollbarBg] = ImVec4(color_background.x * 0.75f, color_background.y * 0.78f, color_background.z * 0.82f, 1.0f);
+    colors[ImGuiCol_ScrollbarGrab] = color_current_line;
+    colors[ImGuiCol_ScrollbarGrabHovered] = color_comment;
+    colors[ImGuiCol_ScrollbarGrabActive] = color_purple;
 
     // Buttons
-    colors[ImGuiCol_Button] = current_line;
-    colors[ImGuiCol_ButtonHovered] = ImVec4(purple.x, purple.y, purple.z, 0.7f);
-    colors[ImGuiCol_ButtonActive] = purple;
+    colors[ImGuiCol_Button] = color_current_line;
+    colors[ImGuiCol_ButtonHovered] = ImVec4(color_purple.x, color_purple.y, color_purple.z, 0.7f);
+    colors[ImGuiCol_ButtonActive] = color_purple;
 
     // Headers (collapsing headers, tree nodes, selectables, menu items)
-    colors[ImGuiCol_Header] = current_line;
-    colors[ImGuiCol_HeaderHovered] = ImVec4(purple.x, purple.y, purple.z, 0.5f);
-    colors[ImGuiCol_HeaderActive] = ImVec4(purple.x, purple.y, purple.z, 0.7f);
+    colors[ImGuiCol_Header] = color_current_line;
+    colors[ImGuiCol_HeaderHovered] = ImVec4(color_purple.x, color_purple.y, color_purple.z, 0.5f);
+    colors[ImGuiCol_HeaderActive] = ImVec4(color_purple.x, color_purple.y, color_purple.z, 0.7f);
 
     // Tabs
-    colors[ImGuiCol_Tab] = ImVec4(0.18f, 0.19f, 0.24f, 1.0f);
-    colors[ImGuiCol_TabHovered] = ImVec4(purple.x, purple.y, purple.z, 0.7f);
-    colors[ImGuiCol_TabActive] = ImVec4(purple.x, purple.y, purple.z, 0.5f);
-    colors[ImGuiCol_TabUnfocused] = ImVec4(0.14f, 0.15f, 0.19f, 1.0f);
-    colors[ImGuiCol_TabUnfocusedActive] = current_line;
+    colors[ImGuiCol_Tab] = ImVec4(color_background.x * 1.15f, color_background.y * 1.16f, color_background.z * 1.17f, 1.0f);
+    colors[ImGuiCol_TabHovered] = ImVec4(color_purple.x, color_purple.y, color_purple.z, 0.7f);
+    colors[ImGuiCol_TabActive] = ImVec4(color_purple.x, color_purple.y, color_purple.z, 0.5f);
+    colors[ImGuiCol_TabUnfocused] = ImVec4(color_background.x * 0.85f, color_background.y * 0.86f, color_background.z * 0.87f, 1.0f);
+    colors[ImGuiCol_TabUnfocusedActive] = color_current_line;
 
     // Separator
-    colors[ImGuiCol_Separator] = current_line;
-    colors[ImGuiCol_SeparatorHovered] = purple;
-    colors[ImGuiCol_SeparatorActive] = purple;
+    colors[ImGuiCol_Separator] = color_current_line;
+    colors[ImGuiCol_SeparatorHovered] = color_purple;
+    colors[ImGuiCol_SeparatorActive] = color_purple;
 
     // Resize grip
-    colors[ImGuiCol_ResizeGrip] = current_line;
-    colors[ImGuiCol_ResizeGripHovered] = purple;
-    colors[ImGuiCol_ResizeGripActive] = purple;
+    colors[ImGuiCol_ResizeGrip] = color_current_line;
+    colors[ImGuiCol_ResizeGripHovered] = color_purple;
+    colors[ImGuiCol_ResizeGripActive] = color_purple;
 
     // Docking
-    colors[ImGuiCol_DockingPreview] = ImVec4(purple.x, purple.y, purple.z, 0.5f);
-    colors[ImGuiCol_DockingEmptyBg] = ImVec4(0.12f, 0.13f, 0.17f, 1.0f);
+    colors[ImGuiCol_DockingPreview] = ImVec4(color_purple.x, color_purple.y, color_purple.z, 0.5f);
+    colors[ImGuiCol_DockingEmptyBg] = ImVec4(color_background.x * 0.75f, color_background.y * 0.78f, color_background.z * 0.82f, 1.0f);
 
     // Text
-    colors[ImGuiCol_Text] = foreground;
-    colors[ImGuiCol_TextDisabled] = comment;
+    colors[ImGuiCol_Text] = color_foreground;
+    colors[ImGuiCol_TextDisabled] = color_comment;
 
     // Checkbox, slider
-    colors[ImGuiCol_CheckMark] = green;
-    colors[ImGuiCol_SliderGrab] = purple;
-    colors[ImGuiCol_SliderGrabActive] = ImVec4(purple.x, purple.y, purple.z, 0.8f);
+    colors[ImGuiCol_CheckMark] = color_green;
+    colors[ImGuiCol_SliderGrab] = color_purple;
+    colors[ImGuiCol_SliderGrabActive] = ImVec4(color_purple.x, color_purple.y, color_purple.z, 0.8f);
 
     // Plot
-    colors[ImGuiCol_PlotLines] = cyan;
-    colors[ImGuiCol_PlotLinesHovered] = pink;
-    colors[ImGuiCol_PlotHistogram] = green;
-    colors[ImGuiCol_PlotHistogramHovered] = pink;
+    colors[ImGuiCol_PlotLines] = color_cyan;
+    colors[ImGuiCol_PlotLinesHovered] = color_pink;
+    colors[ImGuiCol_PlotHistogram] = color_green;
+    colors[ImGuiCol_PlotHistogramHovered] = color_pink;
 
     // Table
-    colors[ImGuiCol_TableHeaderBg] = ImVec4(0.18f, 0.19f, 0.24f, 1.0f);
-    colors[ImGuiCol_TableBorderStrong] = current_line;
-    colors[ImGuiCol_TableBorderLight] = ImVec4(0.22f, 0.23f, 0.29f, 1.0f);
+    colors[ImGuiCol_TableHeaderBg] = ImVec4(color_background.x * 1.15f, color_background.y * 1.16f, color_background.z * 1.17f, 1.0f);
+    colors[ImGuiCol_TableBorderStrong] = color_current_line;
+    colors[ImGuiCol_TableBorderLight] = ImVec4(color_current_line.x * 0.82f, color_current_line.y * 0.83f, color_current_line.z * 0.85f, 1.0f);
     colors[ImGuiCol_TableRowBg] = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
     colors[ImGuiCol_TableRowBgAlt] = ImVec4(1.0f, 1.0f, 1.0f, 0.02f);
 
     // Nav highlight
-    colors[ImGuiCol_NavHighlight] = purple;
+    colors[ImGuiCol_NavHighlight] = color_purple;
     colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.0f, 1.0f, 1.0f, 0.7f);
     colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.8f, 0.8f, 0.8f, 0.2f);
 
     // Modal dim
-    colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.0f, 0.0f, 0.0f, 0.6f);
+    colors[ImGuiCol_ModalWindowDimBg] = color_modal_dim;
 }
 
 void EngineUI::initialize(GLFWwindow* window)
@@ -207,13 +211,13 @@ void EngineUI::draw_toolbar(EngineState& state)
     {
         // Play/Pause button
         ImVec4 play_color = state.is_paused ?
-            ImVec4(0.314f, 0.980f, 0.482f, 1.0f) :  // Green when paused (click to play)
-            ImVec4(1.0f, 0.725f, 0.424f, 1.0f);      // Orange when playing (click to pause)
+            color_green :  // Green when paused (click to play)
+            color_orange;      // Orange when playing (click to pause)
 
         ImGui::PushStyleColor(ImGuiCol_Button, play_color);
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(play_color.x * 0.8f, play_color.y * 0.8f, play_color.z * 0.8f, 1.0f));
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(play_color.x * 0.6f, play_color.y * 0.6f, play_color.z * 0.6f, 1.0f));
-        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(color_foreground.x * 0.1f, color_foreground.y * 0.1f, color_foreground.z * 0.1f, 1.0f));
 
         const char* play_label = state.is_paused ? "  Play  " : "  Pause  ";
         if (ImGui::Button(play_label))
@@ -225,16 +229,36 @@ void EngineUI::draw_toolbar(EngineState& state)
         ImGui::SameLine();
 
         // Restart button
-        ImVec4 restart_color = ImVec4(0.741f, 0.576f, 0.976f, 1.0f);  // Purple color
+        ImVec4 restart_color = color_purple;  // Purple color
         ImGui::PushStyleColor(ImGuiCol_Button, restart_color);
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(restart_color.x * 0.8f, restart_color.y * 0.8f, restart_color.z * 0.8f, 1.0f));
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(restart_color.x * 0.6f, restart_color.y * 0.6f, restart_color.z * 0.6f, 1.0f));
-        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(color_foreground.x * 0.1f, color_foreground.y * 0.1f, color_foreground.z * 0.1f, 1.0f));
 
         if (ImGui::Button("  Restart  "))
         {
             state.scene_should_restart = true;
             state.is_paused = true;
+        }
+        ImGui::PopStyleColor(4);
+
+        ImGui::SameLine();
+        ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
+        ImGui::SameLine();
+
+
+        // Trigger button for Draw Forces
+        ImVec4 draw_forces = color_yellow;
+
+        ImGui::PushStyleColor(ImGuiCol_Button, draw_forces);
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(draw_forces.x * 0.8f, draw_forces.y * 0.8f, draw_forces.z * 0.8f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(draw_forces.x * 0.6f, draw_forces.y * 0.6f, draw_forces.z * 0.6f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(color_foreground.x * 0.1f, color_foreground.y * 0.1f, color_foreground.z * 0.1f, 1.0f));
+
+        const char* forces_label = state.draw_forces ? "  Hide Forces  " : "  Draw Forces  ";
+        if (ImGui::Button(forces_label))
+        {
+            state.draw_forces = !state.draw_forces;
         }
         ImGui::PopStyleColor(4);
 
@@ -253,10 +277,10 @@ void EngineUI::draw_toolbar(EngineState& state)
         ImGui::SameLine();
 
         // FPS display
-        ImGui::TextColored(ImVec4(0.545f, 0.914f, 0.992f, 1.0f), "FPS: %.1f", ImGui::GetIO().Framerate);
+        ImGui::TextColored(color_cyan, "FPS: %.1f", ImGui::GetIO().Framerate);
 
         ImGui::SameLine();
-        ImGui::TextColored(ImVec4(0.384f, 0.447f, 0.643f, 1.0f), "(%.2f ms)", 1000.0f / ImGui::GetIO().Framerate);
+        ImGui::TextColored(color_comment, "(%.2f ms)", 1000.0f / ImGui::GetIO().Framerate);
     }
     ImGui::End();
     ImGui::PopStyleVar();
@@ -266,7 +290,7 @@ void EngineUI::draw_hierarchy(const SceneSnapshot& scene_snapshot)
 {
     if (ImGui::Begin("Hierarchy"))
     {
-        ImGui::TextColored(ImVec4(0.545f, 0.914f, 0.992f, 1.0f), "Scene Objects");
+        ImGui::TextColored(color_cyan, "Scene Objects");
         ImGui::Separator();
 
         for (int i = 0; i < static_cast<int>(scene_snapshot.object_snapshots.size()); ++i)
@@ -307,7 +331,7 @@ void EngineUI::draw_inspector(const SceneSnapshot& scene_snapshot)
             std::string display_name = obj.name.empty() ?
                 (obj.model_name + "_" + std::to_string(selected_object_index_)) : obj.name;
 
-            ImGui::TextColored(ImVec4(0.741f, 0.576f, 0.976f, 1.0f), "%s", display_name.c_str());
+            ImGui::TextColored(color_purple, "%s", display_name.c_str());
             ImGui::Separator();
 
             // Transform section
@@ -316,7 +340,7 @@ void EngineUI::draw_inspector(const SceneSnapshot& scene_snapshot)
                 ImGui::Indent(10.0f);
 
                 // Position (read-only)
-                ImGui::TextColored(ImVec4(0.545f, 0.914f, 0.992f, 1.0f), "Position");
+                ImGui::TextColored(color_cyan, "Position");
                 float pos[3] = {
                     static_cast<float>(obj.transform.position.x),
                     static_cast<float>(obj.transform.position.y),
@@ -329,7 +353,7 @@ void EngineUI::draw_inspector(const SceneSnapshot& scene_snapshot)
                 ImGui::Spacing();
 
                 // Rotation (read-only) - display as quaternion
-                ImGui::TextColored(ImVec4(0.545f, 0.914f, 0.992f, 1.0f), "Rotation (Quaternion)");
+                ImGui::TextColored(color_cyan, "Rotation (Quaternion)");
                 float rot[4] = {
                     static_cast<float>(obj.transform.rotation.x),
                     static_cast<float>(obj.transform.rotation.y),
@@ -343,7 +367,7 @@ void EngineUI::draw_inspector(const SceneSnapshot& scene_snapshot)
                 ImGui::Spacing();
 
                 // Scale (read-only)
-                ImGui::TextColored(ImVec4(0.545f, 0.914f, 0.992f, 1.0f), "Scale");
+                ImGui::TextColored(color_cyan, "Scale");
                 float scale[3] = {
                     static_cast<float>(obj.transform.scale.x),
                     static_cast<float>(obj.transform.scale.y),
@@ -357,7 +381,21 @@ void EngineUI::draw_inspector(const SceneSnapshot& scene_snapshot)
             }
 
             ImGui::Spacing();
+            if (ImGui::CollapsingHeader("Forces", ImGuiTreeNodeFlags_DefaultOpen))
+            {
+                ImGui::TextColored(color_cyan, "Resultant Force");
+                float force[3] = {
+                    static_cast<float>(obj.force.x),
+                    static_cast<float>(obj.force.y),
+                    static_cast<float>(obj.force.z)
+                };
+                ImGui::BeginDisabled();
+                ImGui::InputFloat3("##force", force, "%.3f");
+                ImGui::EndDisabled();
 
+                ImGui::Spacing();
+            }
+            ImGui::Spacing();
             // Model info section
             if (ImGui::CollapsingHeader("Model", ImGuiTreeNodeFlags_DefaultOpen))
             {
@@ -368,7 +406,7 @@ void EngineUI::draw_inspector(const SceneSnapshot& scene_snapshot)
         }
         else
         {
-            ImGui::TextColored(ImVec4(0.384f, 0.447f, 0.643f, 1.0f), "Select an object from the Hierarchy");
+            ImGui::TextColored(color_comment, "Select an object from the Hierarchy");
         }
     }
     ImGui::End();
@@ -415,7 +453,7 @@ void EngineUI::draw_scene_view(EngineState& state, GLuint scene_texture_id)
             ImVec2 text_pos = ImVec2(window_pos.x + 10, window_pos.y + available_size.y - 25);
             ImGui::GetWindowDrawList()->AddText(
                 text_pos,
-                IM_COL32(100, 100, 100, 200),
+                ImGui::ColorConvertFloat4ToU32(ImVec4(color_foreground.x * 0.4f, color_foreground.y * 0.4f, color_foreground.z * 0.4f, 0.78f)),
                 "Click to control camera (ESC to release)"
             );
         }
@@ -493,7 +531,7 @@ void EngineUI::draw_restart_overlay()
                                      ImGuiWindowFlags_NoNav |
                                      ImGuiWindowFlags_NoInputs;
 
-    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 0.6f));
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, color_modal_dim);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
 
@@ -509,15 +547,18 @@ void EngineUI::draw_restart_overlay()
     ImVec2 box_min = ImVec2(center.x - box_width * 0.5f, center.y - box_height * 0.5f);
     ImVec2 box_max = ImVec2(center.x + box_width * 0.5f, center.y + box_height * 0.5f);
 
-    // Draw rounded rectangle background (Dracula current_line color)
+    // Draw rounded rectangle background (Dracula current_line color) - use class color with slightly reduced alpha
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    ImVec4 bg_col = color_current_line;
+    bg_col.w = 240.0f / 255.0f; // match previous alpha 240
     draw_list->AddRectFilled(box_min, box_max,
-                             IM_COL32(68, 71, 90, 240),  // #44475a with high alpha
+                             ImGui::ColorConvertFloat4ToU32(bg_col),
                              8.0f);
 
     // Draw border (Dracula purple)
+    ImVec4 border_col = color_purple;
     draw_list->AddRect(box_min, box_max,
-                       IM_COL32(189, 147, 249, 255),  // #bd93f9
+                       ImGui::ColorConvertFloat4ToU32(border_col),
                        8.0f, 0, 2.0f);
 
     // Draw "Restarting Scene..." text
@@ -525,7 +566,7 @@ void EngineUI::draw_restart_overlay()
     ImVec2 title_size = ImGui::CalcTextSize(title_text);
     ImVec2 title_pos = ImVec2(center.x - title_size.x * 0.5f, center.y - 20.0f);
     draw_list->AddText(title_pos,
-                       IM_COL32(248, 248, 242, 255),  // #f8f8f2 foreground
+                       ImGui::ColorConvertFloat4ToU32(color_foreground),
                        title_text);
 
     // Animated loading dots based on time
@@ -539,7 +580,7 @@ void EngineUI::draw_restart_overlay()
     ImVec2 loading_size = ImGui::CalcTextSize(full_text);
     ImVec2 loading_pos = ImVec2(center.x - loading_size.x * 0.5f, center.y + 10.0f);
     draw_list->AddText(loading_pos,
-                       IM_COL32(139, 233, 253, 255),  // #8be9fd cyan
+                       ImGui::ColorConvertFloat4ToU32(color_cyan),
                        full_text);
 
     ImGui::End();

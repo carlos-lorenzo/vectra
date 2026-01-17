@@ -162,18 +162,11 @@ SceneSnapshot Scene::create_snapshot() const
         obj_snapshot.name = obj.name;
         obj_snapshot.model_name = obj.model_name;
         obj_snapshot.transform = obj.rb.transform;
+        obj_snapshot.force = obj.rb.accumulated_force;
         snapshot.object_snapshots.push_back(obj_snapshot);
     }
 
 
 
     return snapshot;
-}
-
-void Scene::save_scene_to_file(const std::string& filename) const
-{
-}
-
-Scene Scene::load_scene_from_file(const std::string& filename)
-{
 }

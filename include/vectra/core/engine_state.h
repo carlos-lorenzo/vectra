@@ -30,6 +30,10 @@ struct EngineState
 
     std::string loaded_scene = "default_scene.json"; // Last loaded scene filename -> needed for restart functionality
     bool scene_should_restart = false; // Flag to indicate if the scene should be restarted
+
+    // Draw debug info
+    bool draw_forces = false;
+    bool draw_bvh = false;
 };
 
 #endif //VECTRA_ENGINE_STATE_H

@@ -150,6 +150,9 @@ Renderer::Renderer(EngineState* state)
     model_shader_ = std::make_unique<Shader>("resources/shaders/model.vert", "resources/shaders/phong.frag");
     model_cache_.emplace("cube", Model("resources/models/primitives/cube.obj", false));
     model_cache_.emplace("sphere", Model("resources/models/primitives/sphere.obj", false));
+    model_cache_.emplace("vector", Model("resources/models/debugging/vector.obj", false));
+
+
 }
 
 void Renderer::initialize_window()
@@ -277,6 +280,8 @@ void Renderer::render_to_framebuffer(const SceneSnapshot& snapshot, const linkit
     for (const auto& obj_snapshot : snapshot.object_snapshots) {
         glm::mat4 model_matrix = Camera::get_model_matrix(obj_snapshot.transform);
         draw_game_object(obj_snapshot.model_name, model_matrix, view_matrix, projection_matrix_, camera_position);
+
+        if (state_->draw_forces) debug_drawer_->draw_force(obj_snapshot.transform, obj_snapshot.force, view_matrix, projection_matrix_, camera_position);
     }
 
     skybox_->draw(view_matrix, projection_matrix_);

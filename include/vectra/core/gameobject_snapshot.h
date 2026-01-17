@@ -10,6 +10,7 @@ struct GameObjectSnapshot
     std::string name;       // Display name for hierarchy
     std::string model_name;
     Transform transform;
+    linkit::Vector3 force;
 };
 
 #endif //VECTRA_OBJECT_SNAPSHOT_H

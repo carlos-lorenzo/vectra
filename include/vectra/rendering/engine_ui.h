@@ -4,6 +4,9 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+// Forward declaration of ImGui types to avoid forcing all includes to have imgui.h
+struct ImVec4;
+
 #include "vectra/core/engine_state.h"
 #include "vectra/core/scene_snapshot.h"
 
@@ -21,6 +24,21 @@ public:
 private:
     int selected_object_index_ = -1;
     bool first_frame_ = true;  // For initial dock layout setup
+
+    // Color palette (Dracula-inspired) stored as class attributes
+    static ImVec4 color_background;
+    static ImVec4 color_current_line;
+    static ImVec4 color_foreground;
+    static ImVec4 color_comment;
+    static ImVec4 color_purple;
+    static ImVec4 color_green;
+    static ImVec4 color_pink;
+    static ImVec4 color_cyan;
+    static ImVec4 color_red;
+    static ImVec4 color_orange;
+    static ImVec4 color_yellow;
+    static ImVec4 color_popup_bg;
+    static ImVec4 color_modal_dim;
 
     static void apply_dracula_theme();
     void setup_initial_dock_layout(ImGuiID dockspace_id);

@@ -4,16 +4,20 @@
 #include "vectra/core/scene.h"
 #include "vectra/rendering/shader.h"
 #include "vectra/rendering/model.h"
+#include "vectra/rendering/camera.h"
 #include <glm/glm.hpp>
 
 class DebugDrawer {
 public:
     DebugDrawer();
     void draw_bvh(BVHNode<BoundingSphere>* root, const glm::mat4& view, const glm::mat4& projection);
+    void draw_force(const Transform& object_transform, const linkit::Vector3& force_vector, const glm::mat4& view, const glm::mat4& projection, const glm::vec3& camera_position);
 
 private:
     Shader debug_shader_;
     std::unique_ptr<Model> sphere_model_;
+    std::unique_ptr<Model> vector_model_;
+    std::unique_ptr<Model> spring_model_;
 
     void draw_node(BVHNode<BoundingSphere>* node, const glm::mat4& view, const glm::mat4& projection);
 };

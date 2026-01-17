@@ -41,8 +41,6 @@ public:
     void step(linkit::real dt);
 
     SceneSnapshot create_snapshot() const;
-    void save_scene_to_file(const std::string& filename) const;
-    static Scene load_scene_from_file(const std::string& filename);
 
 private:
     void update_bvh();
