@@ -6,7 +6,7 @@
 int main()
 {
     const auto engine = std::make_unique<Engine>();
-    engine->load_scene("orbit.json");
+    engine->load_scene("falling_block.json");
     engine->run();
     return 0;
 }

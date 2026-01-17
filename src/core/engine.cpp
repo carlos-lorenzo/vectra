@@ -21,13 +21,6 @@ Engine::Engine() : render_queue_()
     renderer = std::make_unique<Renderer>(&state_);
     scene = std::make_unique<Scene>();
 
-    // Set collision resolution parameters from engine state
-    scene->collision_handler.set_parameters(
-        state_.position_iterations,
-        state_.velocity_iterations,
-        state_.position_epsilon,
-        state_.velocity_epsilon
-    );
     serializer_ = SceneSerializer();
 
     ui = std::make_unique<EngineUI>();
@@ -59,7 +52,7 @@ void Engine::load_scene(const std::string& filename)
     }
 
     *scene = std::move(result.scene);
-    state_.loaded_scene = filename;
+    //scene->set_engine_state(state_);
     renderer->setup_from_scene(*scene);
 }
 

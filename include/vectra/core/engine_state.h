@@ -14,7 +14,7 @@ struct EngineState
     linkit::real target_fps = 144.0; // Target frames per second for rendering
     linkit::real simulation_frequency = 144.0; // Physics update frequency in Hz
 
-    int max_collision_contacts = 500; // Max number of collision contacts to consider per physics update
+    int max_collision_contacts = 1000; // Max number of collision contacts to consider per physics update
     int window_width = 2560;
     int window_height = 1440;
 
