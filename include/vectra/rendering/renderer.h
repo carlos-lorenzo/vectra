@@ -40,7 +40,7 @@ public:
         void render_to_framebuffer(const SceneSnapshot &snapshot, linkit::real dt);
         void resize_framebuffer(int width, int height);
         [[nodiscard]] GLuint get_scene_texture_id() const;
-        void end_frame();
+        void end_frame() const;
 
         void cleanup(const Scene& scene);
         void draw_game_object(::GameObject& obj, glm::mat4 model_matrix, glm::mat4 view_matrix, glm::mat4 projection_matrix, Scene& scene);

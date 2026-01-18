@@ -11,6 +11,8 @@ struct GameObjectSnapshot
     std::string model_name;
     Transform transform;
     linkit::Vector3 force;
+    bool has_spring;
+    linkit::Vector3 spring_anchor;
 };
 
 #endif //VECTRA_OBJECT_SNAPSHOT_H

@@ -1,10 +1,13 @@
 #include "vectra/rendering/debug_drawer.h"
+
+#include <unistd.h>
+
 #include "vectra/rendering/utils.h"
 #include "vectra/rendering/camera.h"
 #include <glm/gtc/matrix_transform.hpp>
 
 DebugDrawer::DebugDrawer()
-    : debug_shader_("resources/shaders/model.vert", "resources/shaders/debug.frag"),
+    : debug_shader_("resources/shaders/model.vert", "resources/shaders/phong.frag"),
       sphere_model_(std::make_unique<Model>("resources/models/primitives/sphere.obj")),
       vector_model_(std::make_unique<Model>("resources/models/debugging/vector.obj")),
       spring_model_(std::make_unique<Model>("resources/models/debugging/spring.obj"))
@@ -51,8 +54,6 @@ void DebugDrawer::draw_force(const Transform& object_transform, const linkit::Ve
 {
     constexpr float EPSILON = 1e-6f;
     constexpr float max_length = 5.0f;
-    glm::vec3 color = glm::vec3(0.35f, 1.0f, 0.35f);
-    debug_shader_.set_vec3("color", color);
 
     linkit::real force_magnitude = force_vector.magnitude() * 0.2f; // Scale down for visibility
     if (force_magnitude < EPSILON) {
@@ -117,4 +118,84 @@ void DebugDrawer::draw_force(const Transform& object_transform, const linkit::Ve
     debug_shader_.set_vec3("camera_position", param_camera_pos);
 
     vector_model_->draw(debug_shader_);
+}
+
+void DebugDrawer::draw_spring(const linkit::Vector3& pos_a, const linkit::Vector3& pos_b, const glm::mat4& view,
+    const glm::mat4& projection, const glm::vec3& camera_position)
+{
+
+    linkit::Vector3 displacement = pos_b - pos_a;
+    linkit::real length = displacement.magnitude();
+    if (length < 1e-6f) {
+        return; // Nothing to draw
+    }
+    linkit::Vector3 direction = displacement.normalized();
+    // Arrow model scales forward along the local + X axis
+    linkit::Vector3 scale = linkit::Vector3(length, 1.0f, 1.0f);
+
+    // Compute rotation from model_forward -> desired_direction
+    linkit::Vector3 model_forward = linkit::Vector3(1.0f, 0.0f, 0.0f);
+    linkit::Vector3 desired_direction = direction;
+    constexpr float EPSILON = 1e-6f;
+    linkit::real dot_prod = model_forward * desired_direction;
+    // Clamp to [-1, 1] to avoid NaNs from arccos
+    if (dot_prod > 1.0f) dot_prod = 1.0f;
+    if (dot_prod < -1.0f) dot_prod = -1.0f;
+
+
+    linkit::Quaternion rotation_quat;
+    if (dot_prod > 1.0f - 1e-6f) {
+        // Vectors are the same -> no rotation
+        rotation_quat = linkit::Quaternion(0.0, linkit::Vector3(0.0f, 1.0f, 0.0f));
+    } else if (dot_prod < -1.0f + 1e-6f) {
+        // Vectors are opposite -> rotate 180 degrees around any perpendicular axis
+        linkit::Vector3 perp_axis = linkit::Vector3(0.0f, 1.0f, 0.0f);
+        if (std::abs((model_forward % perp_axis).magnitude()) < EPSILON) {
+            perp_axis = linkit::Vector3(0.0f, 0.0f, 1.0f);
+        }
+        rotation_quat = linkit::Quaternion(linkit::PI, perp_axis.normalized());
+    } else {
+        linkit::Vector3 rotation_axis = model_forward % desired_direction;
+        linkit::real axis_length = rotation_axis.magnitude();
+        if (axis_length < EPSILON) {
+            // Fallback if cross produced near-zero axis
+            rotation_quat = linkit::Quaternion(0.0, linkit::Vector3(0.0f, 1.0f, 0.0f));
+        } else {
+            rotation_axis = rotation_axis / axis_length;
+            linkit::real rotation_angle = std::acos(dot_prod);
+            rotation_quat = linkit::Quaternion(rotation_angle, rotation_axis);
+        }
+    }
+
+    // Spring origin at one end
+    Transform spring_transform = Transform(pos_a, rotation_quat, scale);
+    glm::mat4 model_mat = Camera::get_model_matrix(spring_transform);
+
+    glm::mat4 param_view = view;
+    glm::mat4 param_projection = projection;
+    glm::vec3 param_camera_pos = camera_position;
+
+    debug_shader_.use();
+    debug_shader_.set_mat4("model", model_mat);
+    debug_shader_.set_mat4("view", param_view);
+    debug_shader_.set_mat4("projection", param_projection);
+    debug_shader_.set_vec3("camera_position", param_camera_pos);
+
+    spring_model_->draw(debug_shader_);
+}
+
+void DebugDrawer::set_light_sources(const std::vector<LightSource>& light_sources) const
+{
+    debug_shader_.use();
+    auto light_position = glm::vec3(0.0f);
+    auto light_colour = glm::vec3(1.0f);
+    if (!light_sources.empty())
+    {
+        light_position = light_sources[0].position;
+        light_colour = light_sources[0].colour;
+    }
+
+    debug_shader_.set_vec3("light_  position", light_position);
+    debug_shader_.set_vec3("light_colour", light_colour);
+
 }

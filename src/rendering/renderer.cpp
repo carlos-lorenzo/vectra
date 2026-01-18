@@ -256,7 +256,7 @@ void Renderer::render_to_framebuffer(const SceneSnapshot& snapshot, const linkit
 {
     process_input(pWindow_, camera_, dt, state_->scene_view_focused);
 
-    // Resize framebuffer if needed
+    // Resize the framebuffer if needed
     resize_framebuffer(state_->scene_view_width, state_->scene_view_height);
 
     // Update projection matrix for the new aspect ratio
@@ -281,7 +281,17 @@ void Renderer::render_to_framebuffer(const SceneSnapshot& snapshot, const linkit
         glm::mat4 model_matrix = Camera::get_model_matrix(obj_snapshot.transform);
         draw_game_object(obj_snapshot.model_name, model_matrix, view_matrix, projection_matrix_, camera_position);
 
-        if (state_->draw_forces) debug_drawer_->draw_force(obj_snapshot.transform, obj_snapshot.force, view_matrix, projection_matrix_, camera_position);
+        if (state_->draw_forces)
+        {
+            debug_drawer_->set_light_sources(light_sources);
+            debug_drawer_->draw_force(obj_snapshot.transform, obj_snapshot.force, view_matrix, projection_matrix_, camera_position);
+
+        }
+        if (obj_snapshot.has_spring)
+        {
+            debug_drawer_->set_light_sources(light_sources);
+            debug_drawer_->draw_spring(obj_snapshot.transform.position, obj_snapshot.spring_anchor, view_matrix, projection_matrix_, camera_position);
+        }
     }
 
     skybox_->draw(view_matrix, projection_matrix_);
@@ -309,7 +319,7 @@ GLuint Renderer::get_scene_texture_id() const
 }
 
 
-void Renderer::end_frame()
+void Renderer::end_frame() const
 {
     glfwSwapBuffers(pWindow_);
 }
@@ -344,8 +354,8 @@ void Renderer::draw_game_object(GameObject& obj, glm::mat4 model_matrix, glm::ma
         model_shader_->set_vec3("light_colour", light_sources[0].colour);
     } else
     {
-        glm::vec3 light_position = glm::vec3(0.0f);
-        glm::vec3 light_colour = glm::vec3(1.0f);
+        auto light_position = glm::vec3(0.0f);
+        auto light_colour = glm::vec3(1.0f);
         model_shader_->set_vec3("light_position", light_position);
         model_shader_->set_vec3("light_colour", light_colour);
     }

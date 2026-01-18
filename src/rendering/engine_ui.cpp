@@ -394,6 +394,21 @@ void EngineUI::draw_inspector(const SceneSnapshot& scene_snapshot)
                 ImGui::EndDisabled();
 
                 ImGui::Spacing();
+                if (obj.has_spring)
+                {
+                    ImGui::TextColored(color_cyan, "Spring Anchor Point");
+                    float anchor[3] = {
+                        static_cast<float>(obj.spring_anchor.x),
+                        static_cast<float>(obj.spring_anchor.y),
+                        static_cast<float>(obj.spring_anchor.z)
+                    };
+                    ImGui::BeginDisabled();
+                    ImGui::InputFloat3("##anchor", anchor, "%.3f");
+                    ImGui::EndDisabled();
+
+                    ImGui::Spacing();
+                }
+
             }
             ImGui::Spacing();
             // Model info section

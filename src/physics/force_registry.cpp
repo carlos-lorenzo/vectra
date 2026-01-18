@@ -17,12 +17,25 @@ void ForceRegistry::remove(GameObject* obj, std::shared_ptr<ForceGenerator> fg)
         registered_forces.end());
 }
 
+std::vector<std::shared_ptr<ForceGenerator>> ForceRegistry::object_forces(GameObject* obj) const
+{
+    std::vector<std::shared_ptr<ForceGenerator>> forces;
+    for (const auto& reg : registered_forces)
+    {
+        if (reg.obj == obj)
+        {
+            forces.push_back(reg.force_generator);
+        }
+    }
+    return forces;
+}
+
 void ForceRegistry::clear()
 {
     registered_forces.clear();
 }
 
-void ForceRegistry::update_forces(linkit::real dt)
+void ForceRegistry::update_forces(const linkit::real dt)
 {
     for (auto& reg : registered_forces)
     {

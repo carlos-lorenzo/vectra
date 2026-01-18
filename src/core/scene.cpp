@@ -10,7 +10,8 @@
 #include "vectra/rendering/camera.h"
 
 #include "vectra/physics/BVHNode.h"
-
+#include "vectra/physics/forces/anchored_spring.h"
+#include "vectra/physics/forces/object_anchored_spring.h"
 
 Scene::Scene()
 {
@@ -163,6 +164,24 @@ SceneSnapshot Scene::create_snapshot() const
         obj_snapshot.model_name = obj.model_name;
         obj_snapshot.transform = obj.rb.transform;
         obj_snapshot.force = obj.rb.accumulated_force;
+        obj_snapshot.has_spring = false;
+        std::vector<std::shared_ptr<ForceGenerator>> object_forces = force_registry.object_forces(const_cast<GameObject*>(&obj));
+        for (const auto& fg : object_forces)
+        {
+            if (auto spring = std::dynamic_pointer_cast<AnchoredSpring>(fg))
+            {
+                obj_snapshot.has_spring = true;
+                obj_snapshot.spring_anchor = spring->get_anchor_point();
+                break;
+            }
+            else if (auto obj_spring = std::dynamic_pointer_cast<ObjectAnchoredSpring>(fg))
+            {
+                obj_snapshot.has_spring = true;
+                obj_snapshot.spring_anchor = obj_spring->get_anchor_point();
+                break;
+            }
+        }
+
         snapshot.object_snapshots.push_back(obj_snapshot);
     }
 

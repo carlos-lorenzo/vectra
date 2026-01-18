@@ -19,3 +19,8 @@ void AnchoredSpring::update_force(GameObject& obj, linkit::real dt)
     force *= magnitude;
     obj.rb.add_force(force);
 }
+
+linkit::Vector3 AnchoredSpring::get_anchor_point() const
+{
+    return anchor_point;
+}

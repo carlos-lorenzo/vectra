@@ -20,6 +20,7 @@ public:
     std::vector<ForceRegistration> registered_forces;
     void add(GameObject* obj, std::shared_ptr<ForceGenerator> force_generator);
     void remove(GameObject* obj, std::shared_ptr<ForceGenerator> force_generator);
+    std::vector<std::shared_ptr<ForceGenerator>> object_forces(GameObject* obj) const;
     void clear();
     void update_forces(linkit::real dt);
 };
