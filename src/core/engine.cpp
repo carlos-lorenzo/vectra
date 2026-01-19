@@ -190,8 +190,14 @@ void Engine::rendering_thread_func()
         // Handle scene restart on the rendering thread (has OpenGL context)
         if (state_.scene_should_restart)
         {
-            load_scene(state_.loaded_scene);
-            state_.scene_should_restart = false;
+            if (!state_.requested_scene_file.empty()) {
+                load_scene(state_.requested_scene_file);
+                state_.requested_scene_file = "";
+            } else
+            {
+                load_scene(state_.loaded_scene);
+                state_.scene_should_restart = false;
+            }
         }
 
         double new_time = glfwGetTime();

@@ -1,0 +1,80 @@
+{
+    "name": "Ultra-Stiff Double Pendulum",
+    "camera": {
+        "fov": 60.0,
+        "transform": {
+            "position": [0, 10, 25],
+            "rotation": [1, 0, 0, 0]
+        }
+    },
+    "objects": [
+        {
+            "name": "ceiling_anchor",
+            "model_name": "cube",
+            "rigidbody": {
+                "transform": {
+                    "position": [0, 20, 0],
+                    "scale": [0.5, 0.5, 0.5]
+                },
+                "mass": 0
+            }
+        },
+        {
+            "name": "bob_top",
+            "model_name": "sphere",
+            "collider_type": "ColliderSphere",
+            "rigidbody": {
+                "transform": {
+                    "position": [5, 20, 0],
+                    "scale": [0.5, 0.5, 0.5]
+                },
+                "mass": 0.5,
+                "velocity": [0, 0, 2]
+            },
+            "force_generators": [
+                {
+                    "type": "simple_gravity",
+                    "field": [0, -9.81, 0]
+                },
+                {
+                    "type": "object_anchored_spring",
+                    "object_index": 0,
+                    "spring_constant": 2000.0,
+                    "rest_length": 5.0,
+                    "damping": 5.0
+                }
+            ]
+        },
+        {
+            "name": "bob_bottom",
+            "model_name": "sphere",
+            "collider_type": "ColliderSphere",
+            "rigidbody": {
+                "transform": {
+                    "position": [10, 20, 0],
+                    "scale": [0.5, 0.5, 0.5]
+                },
+                "mass": 2.0
+            },
+            "force_generators": [
+                {
+                    "type": "simple_gravity",
+                    "field": [0, -9.81, 0]
+                },
+                {
+                    "type": "object_anchored_spring",
+                    "object_index": 1,
+                    "spring_constant": 2000.0,
+                    "rest_length": 5.0,
+                    "damping": 5.0
+                }
+            ]
+        }
+    ],
+    "lights": [
+        {
+            "position": [0, 30, 20],
+            "colour": [1.0, 1.0, 1.0]
+        }
+    ]
+}

@@ -6,7 +6,7 @@
 int main()
 {
     const auto engine = std::make_unique<Engine>();
-    engine->load_scene("demo.json");
+    engine->load_scene("demo_2.json");
     engine->run();
     return 0;
 }

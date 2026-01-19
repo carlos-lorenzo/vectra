@@ -378,8 +378,8 @@ void Renderer::draw_game_object(const std::string& model_name, glm::mat4 model_m
         model_shader_->set_vec3("light_colour", light_sources[0].colour);
     } else
     {
-        glm::vec3 light_position = glm::vec3(0.0f);
-        glm::vec3 light_colour = glm::vec3(1.0f);
+        auto light_position = glm::vec3(0.0f);
+        auto light_colour = glm::vec3(1.0f);
         model_shader_->set_vec3("light_position", light_position);
         model_shader_->set_vec3("light_colour", light_colour);
     }

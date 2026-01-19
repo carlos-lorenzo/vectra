@@ -1,10 +1,11 @@
-#include "vectra/rendering/engine_ui.h"
+#include <filesystem>
 
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 
+#include "vectra/rendering/engine_ui.h"
 
 // Define static color members
 ImVec4 EngineUI::color_background = ImVec4(0.157f, 0.165f, 0.212f, 1.0f);      // #282a36
@@ -182,21 +183,22 @@ void EngineUI::setup_initial_dock_layout(ImGuiID dockspace_id)
     ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace);
     ImGui::DockBuilderSetNodeSize(dockspace_id, ImGui::GetMainViewport()->WorkSize);
 
-    // Split: main area and right panel (Inspector)
+    // Split main: left panel and center (Scene View)
     ImGuiID dock_main_id = dockspace_id;
-    ImGuiID dock_right_id = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.25f, nullptr, &dock_main_id);
-
-    // Split main: left panel (Hierarchy) and center (Scene View)
     ImGuiID dock_left_id = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Left, 0.2f, nullptr, &dock_main_id);
+
+    // Split left panel into top (Hierarchy) and bottom (Inspector), each half
+    ImGuiID dock_inspector = ImGui::DockBuilderSplitNode(dock_left_id, ImGuiDir_Up, 0.5f, nullptr, &dock_left_id);
 
     // Split top from center for Toolbar
     ImGuiID dock_top_id = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Up, 0.06f, nullptr, &dock_main_id);
 
     // Dock windows
     ImGui::DockBuilderDockWindow("Toolbar", dock_top_id);
-    ImGui::DockBuilderDockWindow("Hierarchy", dock_left_id);
-    ImGui::DockBuilderDockWindow("Inspector", dock_right_id);
+    ImGui::DockBuilderDockWindow("Hierarchy", dock_inspector);
+    ImGui::DockBuilderDockWindow("Inspector", dock_left_id);
     ImGui::DockBuilderDockWindow("Scene View", dock_main_id);
+    ImGui::DockBuilderDockWindow("Scene Selection", dock_top_id);
 
     ImGui::DockBuilderFinish(dockspace_id);
 }
@@ -477,6 +479,40 @@ void EngineUI::draw_scene_view(EngineState& state, GLuint scene_texture_id)
     ImGui::PopStyleVar();
 }
 
+void EngineUI::draw_scene_selection(EngineState& state)
+{
+    ImGuiWindowFlags selection_flags = ImGuiWindowFlags_None;
+
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8.0f, 6.0f));
+
+    std::string path = "resources/scenes/";
+
+    if (ImGui::Begin("Scene Selection", nullptr, selection_flags))
+    {
+        for (const auto & entry : std::filesystem::directory_iterator(path))
+        {
+            std::string scene_name = entry.path().filename().string();
+            if (scene_name == state.loaded_scene)
+            {
+                ImGui::TextColored(color_green, "%s is loaded", scene_name.c_str());
+            }
+            else
+            {
+                ImGui::Text("%s", scene_name.c_str());
+                ImGui::SameLine();
+                if (ImGui::Button(("Load##" + scene_name).c_str()))
+                {
+                    state.requested_scene_file = scene_name;
+                    state.scene_should_restart = true;
+                    state.is_paused = true;
+                }
+            }
+        }
+    }
+    ImGui::End();
+    ImGui::PopStyleVar();
+}
+
 void EngineUI::draw(EngineState& state, SceneSnapshot& scene_snapshot, GLuint scene_texture_id)
 {
     // Start the Dear ImGui frame
@@ -506,7 +542,7 @@ void EngineUI::draw(EngineState& state, SceneSnapshot& scene_snapshot, GLuint sc
     // Creates the actual dock node
     ImGuiID dockspace_id = ImGui::GetID("MainDockSpace");
 
-    // Setup initial dock layout on first frame
+    // Setup initial dock layout on the first frame
     if (first_frame_)
     {
         setup_initial_dock_layout(dockspace_id);
@@ -522,6 +558,7 @@ void EngineUI::draw(EngineState& state, SceneSnapshot& scene_snapshot, GLuint sc
     draw_hierarchy(scene_snapshot);
     draw_inspector(scene_snapshot);
     draw_scene_view(state, scene_texture_id);
+    draw_scene_selection(state);
 
     // Draw restart overlay if scene is restarting
     if (state.scene_should_restart)

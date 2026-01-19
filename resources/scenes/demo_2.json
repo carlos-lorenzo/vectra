@@ -1,0 +1,150 @@
+{
+    "name": "Vectra Kinetic Playground Demo",
+    "camera": {
+        "fov": 90.0,
+        "transform": {
+            "position": [40, 30, 60]
+        }
+    },
+    "objects": [
+        {
+            "name": "ground_plane",
+            "model_name": "cube",
+            "collider_type": "ColliderBox",
+            "rigidbody": {
+                "transform": {
+                    "position": [0, -1, 0],
+                    "scale": [200, 1, 200]
+                },
+                "mass": 0
+            }
+        },
+        {
+            "name": "central_star",
+            "model_name": "sphere",
+            "collider_type": "ColliderSphere",
+            "rigidbody": {
+                "transform": {
+                    "position": [0, 15, 0],
+                    "scale": [8, 8, 8]
+                },
+                "mass": 0
+            }
+        },
+        {
+            "name": "orbiting_planet",
+            "model_name": "sphere",
+            "collider_type": "ColliderSphere",
+            "rigidbody": {
+                "transform": {
+                    "position": [30, 15, 0],
+                    "scale": [2, 2, 2]
+                },
+                "mass": 1.0,
+                "velocity": [0, 0, 10]
+            },
+            "force_generators": [
+                {
+                    "type": "newtonian_gravity",
+                    "gravitational_constant": 3000.0,
+                    "affected_object_indices": [1]
+                }
+            ]
+        },
+        {
+            "name": "spring_anchor_point",
+            "model_name": "cube",
+            "rigidbody": {
+                "transform": {
+                    "position": [-25, 30, 10],
+                    "scale": [1, 1, 1]
+                },
+                "mass": 0
+            }
+        },
+        {
+            "name": "pendulum_bob_A",
+            "model_name": "sphere",
+            "collider_type": "ColliderSphere",
+            "rigidbody": {
+                "transform": {
+                    "position": [-25, 20, 10]
+                },
+                "mass": 5.0,
+                "velocity": [5, 0, 0]
+            },
+            "force_generators": [
+                {
+                    "type": "simple_gravity",
+                    "field": [0, -9.81, 0]
+                },
+                {
+                    "type": "object_anchored_spring",
+                    "object_index": 3,
+                    "spring_constant": 100.0,
+                    "rest_length": 10.0,
+                    "damping": 0.2
+                }
+            ]
+        },
+        {
+            "name": "pendulum_bob_B",
+            "model_name": "sphere",
+            "collider_type": "ColliderSphere",
+            "rigidbody": {
+                "transform": {
+                    "position": [-25, 10, 10]
+                },
+                "mass": 3.0
+            },
+            "force_generators": [
+                {
+                    "type": "simple_gravity",
+                    "field": [0, -9.81, 0]
+                },
+                {
+                    "type": "object_anchored_spring",
+                    "object_index": 4,
+                    "spring_constant": 150.0,
+                    "rest_length": 8.0,
+                    "damping": 0.5
+                }
+            ]
+        },
+        {
+            "name": "damped_suspended_cube",
+            "model_name": "cube",
+            "collider_type": "ColliderBox",
+            "rigidbody": {
+                "transform": {
+                    "position": [0, 40, -20],
+                    "scale": [3, 3, 3]
+                },
+                "mass": 10.0
+            },
+            "force_generators": [
+                {
+                    "type": "simple_gravity",
+                    "field": [0, -9.81, 0]
+                },
+                {
+                    "type": "anchored_spring",
+                    "anchor_point": [0, 60, -20],
+                    "spring_constant": 40.0,
+                    "rest_length": 15.0,
+                    "damping": 0.8
+                }
+            ]
+        }
+    ],
+    "lights": [
+        {
+            "position": [50, 50, 50],
+            "colour": [1.0, 0.8, 0.6]
+        },
+        {
+            "position": [-50, 20, 0],
+            "colour": [0.4, 0.6, 1.0]
+        }
+    ]
+}

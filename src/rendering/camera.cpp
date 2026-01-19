@@ -14,13 +14,13 @@ Camera::Camera()
 
     transform.rotation = linkit::Quaternion(0, linkit::Vector3(0, 0, 1));
 
-    transform.position = linkit::Vector3(0.0f, 0.01f, 10.0f);
+    transform.position = linkit::Vector3(0.0f, 0.0f, 10.0f);
     fov = 90.0f;
     aspectRatio = 16.0f / 9.0f;
     nearPlane = 0.01f;
-    farPlane = 100.0f;
+    farPlane = 1000.0f;
 
-    movement_speed = 2;
+    movement_speed = 4;
     mouse_sensitivity = 0.003;
     max_pitch = linkit::PI * 0.5 - 0.001;
 

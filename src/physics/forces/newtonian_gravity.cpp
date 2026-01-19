@@ -23,7 +23,8 @@ void NewtonianGravity::update_force(GameObject& obj, linkit::real dt)
         if (other == nullptr) continue;
         if (other == &obj) continue;
 
-        if (other->rb.has_finite_mass()) continue;
+        linkit::real other_mass = other->rb.mass;
+        if (other_mass == 0) other_mass = cero_mass_substitute;
 
         linkit::Vector3 obj_to_other = other->rb.transform.position - obj.rb.transform.position;
         linkit::real distance_sq = obj_to_other*obj_to_other;
@@ -33,7 +34,7 @@ void NewtonianGravity::update_force(GameObject& obj, linkit::real dt)
 
         linkit::Vector3 force_dir = obj_to_other.normalized();
 
-        linkit::real force_magnitude = (gravitational_constant * obj.rb.mass * other->rb.mass) / distance_sq;
+        linkit::real force_magnitude = (gravitational_constant * obj.rb.mass * other_mass) / distance_sq;
         obj.rb.add_force(force_magnitude * force_dir);
     }
 }

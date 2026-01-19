@@ -29,6 +29,7 @@ struct EngineState
     linkit::real velocity_epsilon = 0.001f;  // Minimum closing velocity to resolve
 
     std::string loaded_scene = "default_scene.json"; // Last loaded scene filename -> needed for restart functionality
+    std::string requested_scene_file = ""; // If non-empty, the engine will load this scene at the next opportunity
     bool scene_should_restart = false; // Flag to indicate if the scene should be restarted
 
     // Draw debug info
