@@ -139,7 +139,22 @@ else()
 endif()
 
 
-# ---8. Json (External Library) ---
+# --- 8. ImGuiFileDialog (Git Submodule) ---
+set(IMGUIFILEDIALOG_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/external/ImGuiFileDialog")
+if(EXISTS "${IMGUIFILEDIALOG_ROOT}/ImGuiFileDialog.h")
+    add_library(imgui_filedialog INTERFACE)
+    target_include_directories(imgui_filedialog INTERFACE "${IMGUIFILEDIALOG_ROOT}")
+    target_link_libraries(imgui_filedialog INTERFACE imgui)
+else()
+    message(FATAL_ERROR
+        "ImGuiFileDialog submodule not found at ${IMGUIFILEDIALOG_ROOT}.\n"
+        "Please run: git submodule update --init --recursive"
+    )
+endif()
+
+add_subdirectory(external/ImGuiFileDialog)
+
+# --- 9. Json (External Library) ---
 FetchContent_Declare(json
         GIT_REPOSITORY https://github.com/nlohmann/json
         GIT_TAG v3.12.0
@@ -147,17 +162,17 @@ FetchContent_Declare(json
 FetchContent_MakeAvailable(json)
 
 
-# --- 8. Linkit (External Library) ---
+# --- 10. Linkit (External Library) ---
 add_subdirectory(external/linkit)
 
 
 
-# --- 9. Project Subdirectories (must come after all dependencies are defined) ---
+# --- 11. Project Subdirectories (must come after all dependencies are defined) ---
 add_subdirectory(src/rendering)
 add_subdirectory(src/physics)
 add_subdirectory(src/core)
 
-# --- 10. Main Executable ---
+# --- 12. Main Executable ---
 set(SOURCES
     src/main.cpp
     src/rendering/shader.cpp
@@ -262,6 +277,7 @@ target_link_libraries(${PROJECT_NAME}
         glad
         glm::glm
         imgui
+        imgui_filedialog
         rendering
         physics
         core
@@ -279,4 +295,3 @@ target_include_directories(${PROJECT_NAME}
         "${CMAKE_CURRENT_SOURCE_DIR}/external"
         "${CMAKE_CURRENT_SOURCE_DIR}/resources"
 )
-

@@ -1,11 +1,13 @@
 file(GLOB RENDERING_SOURCES "*.cpp")
 
 add_library(rendering STATIC ${RENDERING_SOURCES}
-        engine_ui.cpp)
+        engine_ui.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../external/ImGuiFileDialog/ImGuiFileDialog.cpp)
 target_include_directories(rendering PUBLIC ${CMAKE_SOURCE_DIR}/include/vectra/rendering)
 target_include_directories(rendering
         PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/../../external/glad/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../external/ImGuiFileDialog
         ${CMAKE_CURRENT_SOURCE_DIR}/../../include
 )
 
@@ -18,4 +20,7 @@ target_link_libraries(rendering
         assimp::assimp
         stb_image
         glfw
+        nlohmann_json::nlohmann_json
+
+
 )

@@ -24,6 +24,7 @@ public:
 private:
     int selected_object_index_ = -1;
     bool first_frame_ = true;  // For initial dock layout setup
+    std::string upload_status_message_;  // Status message for file upload
 
     // Color palette (Dracula-inspired) stored as class attributes
     static ImVec4 color_background;

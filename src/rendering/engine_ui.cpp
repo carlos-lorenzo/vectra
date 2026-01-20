@@ -5,7 +5,13 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 
+#include <ImGuiFileDialog.h>
+
 #include "vectra/rendering/engine_ui.h"
+
+#include <iostream>
+
+#include "vectra/core/scene_serializer.h"
 
 // Define static color members
 ImVec4 EngineUI::color_background = ImVec4(0.157f, 0.165f, 0.212f, 1.0f);      // #282a36
@@ -489,6 +495,21 @@ void EngineUI::draw_scene_selection(EngineState& state)
 
     if (ImGui::Begin("Scene Selection", nullptr, selection_flags))
     {
+        // Upload button
+        if (ImGui::Button("Upload Scene"))
+        {
+            IGFD::FileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose a scene file", ".json");
+        }
+
+        // Display upload status message
+        if (!upload_status_message_.empty())
+        {
+            ImGui::SameLine();
+            ImGui::Text("%s", upload_status_message_.c_str());
+        }
+
+        ImGui::Separator();
+
         for (const auto & entry : std::filesystem::directory_iterator(path))
         {
             std::string scene_name = entry.path().filename().string();
@@ -507,6 +528,43 @@ void EngineUI::draw_scene_selection(EngineState& state)
                     state.is_paused = true;
                 }
             }
+        }
+
+        // Handle file dialog
+        if (IGFD::FileDialog::Instance()->Display("ChooseFileDlgKey"))
+        {
+            if (IGFD::FileDialog::Instance()->IsOk())
+            {
+                std::string file_path = IGFD::FileDialog::Instance()->GetFilePathName();
+                std::string file_name = IGFD::FileDialog::Instance()->GetCurrentFileName();
+
+                // Destination path
+                std::filesystem::path dest_path = std::filesystem::path(path) / file_name;
+
+                try
+                {
+                    // Copy file
+                    std::filesystem::copy(file_path, dest_path, std::filesystem::copy_options::overwrite_existing);
+
+                    // Validate the scene file
+                    SceneSerializer serializer;
+                    SceneLoadResult result = serializer.deserialize_scene(file_name);
+
+                    if (result.has_errors())
+                    {
+                        upload_status_message_ = "Invalid scene file: " + result.errors[0];
+                    }
+                    else
+                    {
+                        upload_status_message_ = "File uploaded successfully";
+                    }
+                }
+                catch (const std::filesystem::filesystem_error& e)
+                {
+                    upload_status_message_ = "Failed to copy file: " + std::string(e.what());
+                }
+            }
+            IGFD::FileDialog::Instance()->Close();
         }
     }
     ImGui::End();
