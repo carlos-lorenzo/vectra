@@ -128,6 +128,7 @@ Mesh Model::process_mesh(aiMesh *mesh, const aiScene *scene)
         // specular: texture_specularN
         // normal: texture_normalN
 
+
         // 1. diffuse maps
         std::vector<Texture> diffuseMaps = load_material_textures(material, aiTextureType_DIFFUSE, "texture_diffuse");
         textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());

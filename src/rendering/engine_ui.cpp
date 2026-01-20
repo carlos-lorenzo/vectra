@@ -200,11 +200,11 @@ void EngineUI::setup_initial_dock_layout(ImGuiID dockspace_id)
     ImGuiID dock_top_id = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Up, 0.06f, nullptr, &dock_main_id);
 
     // Dock windows
-    ImGui::DockBuilderDockWindow("Toolbar", dock_top_id);
     ImGui::DockBuilderDockWindow("Hierarchy", dock_inspector);
     ImGui::DockBuilderDockWindow("Inspector", dock_left_id);
     ImGui::DockBuilderDockWindow("Scene View", dock_main_id);
-    ImGui::DockBuilderDockWindow("Scene Selection", dock_top_id);
+    ImGui::DockBuilderDockWindow("Scene Selection", dock_left_id);
+    ImGui::DockBuilderDockWindow("Toolbar", dock_top_id);
 
     ImGui::DockBuilderFinish(dockspace_id);
 }
