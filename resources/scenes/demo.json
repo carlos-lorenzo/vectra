@@ -68,12 +68,8 @@
                     "spring_constant": 40.0,
                     "rest_length": 6.0,
                     "damping": 0.5
-                },
-                {
-                    "type": "newtonian_gravity",
-                    "gravitational_constant": 500.0,
-                    "affected_object_indices": [1]
                 }
+
             ]
         },
         {
@@ -99,11 +95,6 @@
                     "spring_constant": 40.0,
                     "rest_length": 6.0,
                     "damping": 0.5
-                },
-                {
-                    "type": "newtonian_gravity",
-                    "gravitational_constant": 500.0,
-                    "affected_object_indices": [1]
                 }
             ]
         },
