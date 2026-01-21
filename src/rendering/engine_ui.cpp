@@ -203,10 +203,82 @@ void EngineUI::setup_initial_dock_layout(ImGuiID dockspace_id)
     ImGui::DockBuilderDockWindow("Hierarchy", dock_inspector);
     ImGui::DockBuilderDockWindow("Inspector", dock_left_id);
     ImGui::DockBuilderDockWindow("Scene View", dock_main_id);
+    ImGui::DockBuilderDockWindow("Debug", dock_left_id); // NEW: Debug panel docked in left area
     ImGui::DockBuilderDockWindow("Scene Selection", dock_left_id);
     ImGui::DockBuilderDockWindow("Toolbar", dock_top_id);
 
     ImGui::DockBuilderFinish(dockspace_id);
+}
+
+void EngineUI::draw_debug_panel(EngineState& state)
+{
+    if (ImGui::Begin("Debug"))
+    {
+        ImGui::TextColored(color_cyan, "Engine Debug & Tuning");
+        ImGui::Separator();
+
+        // Toggles
+        if (ImGui::Checkbox("Draw BVH", &state.draw_bvh))
+        {
+            // nop; state updated in-place
+        }
+        if (ImGui::Checkbox("Draw Forces", &state.draw_forces)) {}
+        if (ImGui::Checkbox("Draw Shadows", &state.draw_shadows)) {}
+
+        ImGui::Spacing();
+
+        // VSync
+        if (ImGui::Checkbox("Enable VSync", &state.enable_vsync))
+        {
+            // Note: changing the GLFW swap interval requires access to the window.
+            // Renderer will need to react to this flag (handled elsewhere).
+        }
+
+        ImGui::Spacing();
+
+        // Performance / frequency settings
+        float target_fps = static_cast<float>(state.target_fps);
+        if (ImGui::SliderFloat("Target FPS", &target_fps, 30.0f, 240.0f, "%.0f"))
+        {
+            state.target_fps = static_cast<linkit::real>(target_fps);
+        }
+
+        float sim_freq = static_cast<float>(state.simulation_frequency);
+        if (ImGui::SliderFloat("Simulation Frequency (Hz)", &sim_freq, 30.0f, 1000.0f, "%.0f"))
+        {
+            state.simulation_frequency = static_cast<linkit::real>(sim_freq);
+        }
+
+        ImGui::Spacing();
+
+        // Shadow tuning
+        int shadow_res = state.shadow_resolution_default;
+        if (ImGui::Combo("Shadow Resolution", &shadow_res, "1024\0 2048\0 4096\0 8192\0\0"))
+        {
+            // Map combo index to resolution
+            // Because we used direct resolution values, just set state if different
+            state.shadow_resolution_default = shadow_res;
+        }
+
+        int pcf = state.shadow_pcf_kernel;
+        if (ImGui::SliderInt("PCF Kernel", &pcf, 0, 7))
+        {
+            state.shadow_pcf_kernel = pcf;
+        }
+
+        float bias = state.shadow_bias;
+        if (ImGui::SliderFloat("Shadow Bias", &bias, 0.0001f, 0.05f, "%.5f"))
+        {
+            state.shadow_bias = bias;
+        }
+
+        ImGui::Spacing();
+
+        // Misc
+        ImGui::Text("Max collision contacts: %d", state.max_collision_contacts);
+
+    }
+    ImGui::End();
 }
 
 void EngineUI::draw_toolbar(EngineState& state)
@@ -270,22 +342,6 @@ void EngineUI::draw_toolbar(EngineState& state)
         }
         ImGui::PopStyleColor(4);
 
-        ImGui::SameLine();
-
-        // Trigger button for BVH
-        ImVec4 draw_bvh = color_orange;
-
-        ImGui::PushStyleColor(ImGuiCol_Button, draw_bvh);
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(draw_bvh.x * 0.8f, draw_bvh.y * 0.8f, draw_bvh.z * 0.8f, 1.0f));
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(draw_bvh.x * 0.6f, draw_bvh.y * 0.6f, draw_bvh.z * 0.6f, 1.0f));
-        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(color_foreground.x * 0.1f, color_foreground.y * 0.1f, color_foreground.z * 0.1f, 1.0f));
-
-        const char* bvh_label = state.draw_bvh ? "  Hide BVH  " : "  Draw BVH  ";
-        if (ImGui::Button(bvh_label))
-        {
-            state.draw_bvh = !state.draw_bvh;
-        }
-        ImGui::PopStyleColor(4);
 
         ImGui::SameLine();
         ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
@@ -632,6 +688,7 @@ void EngineUI::draw(EngineState& state, SceneSnapshot& scene_snapshot, GLuint sc
     draw_toolbar(state);
     draw_hierarchy(scene_snapshot);
     draw_inspector(scene_snapshot);
+    draw_debug_panel(state); // NEW: render Debug panel
     draw_scene_view(state, scene_texture_id);
     draw_scene_selection(state);
 

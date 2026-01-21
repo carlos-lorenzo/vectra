@@ -48,6 +48,7 @@ private:
     void draw_inspector(const SceneSnapshot& scene_snapshot);
     void draw_scene_view(EngineState& state, GLuint scene_texture_id);
     void draw_scene_selection(EngineState& state);
+    void draw_debug_panel(EngineState& state); // NEW: Debug tab for engine-level toggles and settings
     static void draw_restart_overlay();
 };
 #endif //VECTRA_ENGINE_UI_H

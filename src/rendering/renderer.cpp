@@ -149,7 +149,10 @@ Renderer::Renderer(EngineState* state)
     // Create a framebuffer for scene rendering
     scene_fbo_ = std::make_unique<Framebuffer>(state_->scene_view_width, state_->scene_view_height);
 
-    model_shader_ = std::make_unique<Shader>("resources/shaders/model.vert", "resources/shaders/phong_multiple.frag");
+    model_shader_ = std::make_unique<Shader>("resources/shaders/model.vert", "resources/shaders/blinn_phong.frag");
+    // Load depth-only shader for shadow mapping (stub)
+    depth_shader_ = std::make_unique<Shader>("resources/shaders/shadow_mapping_depth.vert", "resources/shaders/shadow_mapping_depth.frag");
+
     model_cache_.emplace("cube", Model("resources/models/primitives/cube.obj", false));
     model_cache_.emplace("sphere", Model("resources/models/primitives/sphere.obj", false));
     model_cache_.emplace("vector", Model("resources/models/debugging/vector.obj", false));
@@ -269,6 +272,9 @@ void Renderer::render_to_framebuffer(const SceneSnapshot& snapshot, const linkit
         static_cast<float>(camera_.farPlane)
     );
 
+    // NEW: render shadow maps (currently a stub)
+    render_shadow_maps(snapshot, dt);
+
     // Bind framebuffer and render scene
     scene_fbo_->bind();
 
@@ -378,4 +384,14 @@ void Renderer::draw_game_object(const std::string& model_name, glm::mat4 model_m
     model_cache_.at(model_name).draw(*model_shader_);
 }
 
+// Minimal stub implementation for shadow map generation. Will be expanded in follow-up changes.
+void Renderer::render_shadow_maps(const SceneSnapshot& snapshot, linkit::real dt)
+{
+    // Respect global toggle in EngineState
+    if (!state_ || !state_->draw_shadows) return;
+    if (!depth_shader_) return;
 
+    // For now, just validate that the shader can be used without performing GL FBO work.
+    depth_shader_->use();
+    // We intentionally do not change any GL state or bind FBOs yet; this is a lightweight placeholder.
+}

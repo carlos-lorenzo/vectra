@@ -11,7 +11,7 @@
 
 
 DebugDrawer::DebugDrawer()
-    : debug_shader_("resources/shaders/model.vert", "resources/shaders/phong_multiple.frag"),
+    : debug_shader_("resources/shaders/model.vert", "resources/shaders/blinn_phong.frag"),
       sphere_model_(std::make_unique<Model>("resources/models/primitives/sphere.obj")),
       vector_model_(std::make_unique<Model>("resources/models/debugging/vector.obj")),
       spring_model_(std::make_unique<Model>("resources/models/debugging/spring.obj"))
@@ -169,7 +169,7 @@ void DebugDrawer::draw_node(BVHNode<BoundingSphere>* node, const glm::mat4& view
     model = glm::scale(model, glm::vec3(static_cast<float>(node->bounding_volume->radius)));
     glm::mat4 param_view = view;
     glm::mat4 param_projection = projection;
-    
+
     debug_shader_.use();
     debug_shader_.set_mat4("model", model);
     debug_shader_.set_mat4("view", param_view);

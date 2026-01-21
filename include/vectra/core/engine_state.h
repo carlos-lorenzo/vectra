@@ -34,6 +34,12 @@ struct EngineState
     // Draw debug info
     bool draw_forces = false;
     bool draw_bvh = false;
+
+    // Shadow settings
+    bool draw_shadows = true;                  // Global toggle to enable/disable shadow generation
+    int shadow_resolution_default = 2048;     // Default resolution for shadow maps
+    int shadow_pcf_kernel = 3;                // PCF kernel size (3 -> 3x3 samples), 0 = off
+    float shadow_bias = 0.005f;               // Default bias to reduce shadow acne
 };
 
 #endif //VECTRA_ENGINE_STATE_H

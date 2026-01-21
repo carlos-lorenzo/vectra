@@ -18,19 +18,21 @@ struct DirectionalLight {
 
     float strength;
 
-    DirectionalLight() : direction(-0.2f, -1.0f, -0.3f), ambient(1.0f), diffuse(1.0f), specular(1.0f), strength(0.5f)
+    bool can_cast_shadows; // NEW: whether this light casts shadows
+
+    DirectionalLight() : direction(-0.2f, -1.0f, -0.3f), ambient(1.0f), diffuse(1.0f), specular(1.0f), strength(0.5f), can_cast_shadows(true)
     {
 
     }
 
     DirectionalLight(glm::vec3 dir, glm::vec3 amb, glm::vec3 diff, glm::vec3 spec, float stren)
-        : direction(dir), ambient(amb), diffuse(diff), specular(spec), strength(stren)
+        : direction(dir), ambient(amb), diffuse(diff), specular(spec), strength(stren), can_cast_shadows(true)
     {
 
     }
 
     DirectionalLight(glm::vec3 dir, glm::vec3 color)
-        : direction(dir), ambient(color), diffuse(color), specular(color), strength(0.5f)
+        : direction(dir), ambient(color), diffuse(color), specular(color), strength(0.5f), can_cast_shadows(true)
     {
 
     }
@@ -50,6 +52,7 @@ struct DirectionalLight {
         std::cout << "  Ambient: (" << ambient.x << ", " << ambient.y << ", " << ambient.z << ")" << std::endl;
         std::cout << "  Diffuse: (" << diffuse.x << ", " << diffuse.y << ", " << diffuse.z << ")" << std::endl;
         std::cout << "  Specular: (" << specular.x << ", " << specular.y << ", " << specular.z << ")" << std::endl;
+        std::cout << "  Casts Shadows: " << (can_cast_shadows ? "true" : "false") << std::endl;
     }
 };
 
@@ -64,12 +67,14 @@ struct PointLight {
     float linear;
     float quadratic;
 
-    PointLight() : position(0.0f), ambient(0.05f), diffuse(0.8f), specular(1.0f), constant(1.0f), linear(0.09f), quadratic(0.032f)
+    bool can_cast_shadows; // NEW: whether this light casts shadows
+
+    PointLight() : position(0.0f), ambient(0.05f), diffuse(0.8f), specular(1.0f), constant(1.0f), linear(0.09f), quadratic(0.032f), can_cast_shadows(true)
     {
 
     }
 
-    PointLight(glm::vec3 pos, glm::vec3 colour) : position(pos), ambient(colour * 0.1f), diffuse(colour), specular(colour), constant(1.0f), linear(0.09f), quadratic(0.032f)
+    PointLight(glm::vec3 pos, glm::vec3 colour) : position(pos), ambient(colour * 0.1f), diffuse(colour), specular(colour), constant(1.0f), linear(0.09f), quadratic(0.032f), can_cast_shadows(true)
     {
 
     }
@@ -134,6 +139,7 @@ struct PointLight {
         std::cout << "  Diffuse: (" << diffuse.x << ", " << diffuse.y << ", " << diffuse.z << ")" << std::endl;
         std::cout << "  Specular: (" << specular.x << ", " << specular.y << ", " << specular.z << ")" << std::endl;
         std::cout << "  Attenuation - Constant: " << constant << ", Linear: " << linear << ", Quadratic: " << quadratic << std::endl;
+        std::cout << "  Casts Shadows: " << (can_cast_shadows ? "true" : "false") << std::endl;
     }
 };
 
@@ -151,12 +157,14 @@ struct SpotLight {
     float linear;
     float quadratic;
 
-    SpotLight() : position(0.0f), direction(0.0f, -1.0f, 0.0f), cut_off(0.9f), outer_cut_off(0.85f), ambient(0.0f), diffuse(1.0f), specular(1.0f), constant(1.0f), linear(0.09f), quadratic(0.032f)
+    bool can_cast_shadows; // NEW: whether this light casts shadows
+
+    SpotLight() : position(0.0f), direction(0.0f, -1.0f, 0.0f), cut_off(0.9f), outer_cut_off(0.85f), ambient(0.0f), diffuse(1.0f), specular(1.0f), constant(1.0f), linear(0.09f), quadratic(0.032f), can_cast_shadows(true)
     {
 
     }
 
-    SpotLight(glm::vec3 pos, glm::vec3 dir, glm::vec3 colour) : position(pos), direction(dir), cut_off(0.9f), outer_cut_off(0.85f), ambient(colour * 0.1f), diffuse(colour), specular(colour), constant(1.0f), linear(0.09f), quadratic(0.032f)
+    SpotLight(glm::vec3 pos, glm::vec3 dir, glm::vec3 colour) : position(pos), direction(dir), cut_off(0.9f), outer_cut_off(0.85f), ambient(colour * 0.1f), diffuse(colour), specular(colour), constant(1.0f), linear(0.09f), quadratic(0.032f), can_cast_shadows(true)
     {
 
     }
@@ -226,6 +234,7 @@ struct SpotLight {
         std::cout << "  Diffuse: (" << diffuse.x << ", " << diffuse.y << ", " << diffuse.z << ")" << std::endl;
         std::cout << "  Specular: (" << specular.x << ", " << specular.y << ", " << specular.z << ")" << std::endl;
         std::cout << "  Attenuation - Constant: " << constant << ", Linear: " << linear << ", Quadratic: " << quadratic << std::endl;
+        std::cout << "  Casts Shadows: " << (can_cast_shadows ? "true" : "false") << std::endl;
     }
 };
 

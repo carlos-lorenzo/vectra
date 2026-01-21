@@ -22,6 +22,7 @@ class Renderer
         std::unique_ptr<DebugDrawer> debug_drawer_; // Add debug drawer
         std::unordered_map<std::string, Model> model_cache_; // Model cache
         std::unique_ptr<Shader> model_shader_; // Add shader
+        std::unique_ptr<Shader> depth_shader_; // NEW: depth-only shader for shadow pass
         Camera camera_; // Camera for rendering (set by scene)
         SceneLights scene_lights_; // Scene lights for rendering (set by scene)
         std::unique_ptr<Skybox> skybox_; // Skybox for rendering (set by scene) - must be initialized after OpenGL context
@@ -50,6 +51,9 @@ class Renderer
         void draw_game_object(::GameObject& obj, glm::mat4 model_matrix, glm::mat4 view_matrix, glm::mat4 projection_matrix, Scene& scene);
         void draw_game_object(const std::string& model_name, glm::mat4 model_matrix, glm::mat4 view_matrix, glm::mat4 projection_matrix, glm::vec3 camera_position);
 
+        // Shadow mapping
+        // Render shadow maps for lights that can cast shadows. 'dt' passed by value (no const qualifier).
+        void render_shadow_maps(const SceneSnapshot& snapshot, linkit::real dt); // NEW: stub for shadow pass
 
 };
 #endif //VECTRA_RENDERER_H
