@@ -137,32 +137,32 @@ void Shader::set_vec4(const std::string &name, float x, float y, float z, float 
     glUniform4f(glGetUniformLocation(ID, name.c_str()), x, y, z, w);
 }
 
-void Shader::set_vec2(const std::string& name, glm::vec2& vec) const
+void Shader::set_vec2(const std::string& name, const glm::vec2& vec) const
 {
     glUniform2fv(glGetUniformLocation(ID, name.c_str()), 1, glm::value_ptr(vec));
 }
 
-void Shader::set_vec3(const std::string& name, glm::vec3& vec) const
+void Shader::set_vec3(const std::string& name, const glm::vec3& vec) const
 {
     glUniform3fv(glGetUniformLocation(ID, name.c_str()), 1, glm::value_ptr(vec));
 }
 
-void Shader::set_vec4(const std::string& name, glm::vec4& vec) const
+void Shader::set_vec4(const std::string& name, const glm::vec4& vec) const
 {
     glUniform4fv(glGetUniformLocation(ID, name.c_str()), 1, glm::value_ptr(vec));
 }
 
-void Shader::set_mat2(const std::string& name, glm::mat2& mat) const
+void Shader::set_mat2(const std::string& name, const glm::mat2& mat) const
 {
     glUniformMatrix2fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, glm::value_ptr(mat));
 }
 
-void Shader::set_mat3(const std::string& name, glm::mat3& mat) const
+void Shader::set_mat3(const std::string& name, const glm::mat3& mat) const
 {
     glUniformMatrix3fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, glm::value_ptr(mat));
 }
 
-void Shader::set_mat4(const std::string& name, glm::mat4 &mat) const
+void Shader::set_mat4(const std::string& name, const glm::mat4& mat) const
 {
     // Get the location of the "model" uniform in the shader and set the uniform value
     glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, glm::value_ptr(mat));

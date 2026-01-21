@@ -4,10 +4,9 @@
 #include "vectra/core/scene.h"
 
 #include <iostream>
-#include <ostream>
 
-#include "vectra/rendering/light_source.h"
 #include "vectra/rendering/camera.h"
+
 
 #include "vectra/physics/BVHNode.h"
 #include "vectra/physics/forces/anchored_spring.h"
@@ -16,7 +15,7 @@
 Scene::Scene()
 {
     game_objects = std::deque<GameObject>();
-    light_sources = std::vector<LightSource>();
+
     camera = Camera();
     force_registry = ForceRegistry();
     skybox = Skybox();
@@ -50,7 +49,7 @@ void Scene::rebuild_bvh_node_map()
 // add_game_object
 void Scene::add_game_object(GameObject obj)
 {
-    // Auto-generate name if not set
+    // Auto-generate name if isn't set
     if (obj.name.empty())
     {
         int& counter = name_counters_[obj.model_name];
@@ -120,11 +119,20 @@ void Scene::update_bvh()
 }
 
 
-void Scene::add_light_source(const LightSource& obj)
+void Scene::add_directional_light(const DirectionalLight& light)
 {
-    light_sources.push_back(obj);
+    scene_lights.add_directional_light(light);
 }
 
+void Scene::add_point_light(const PointLight& light)
+{
+    scene_lights.add_point_light(light);
+}
+
+void Scene::add_spot_light(const SpotLight& light)
+{
+    scene_lights.add_spot_light(light);
+}
 
 
 void Scene::step(const linkit::real dt)
@@ -145,13 +153,18 @@ void Scene::step(const linkit::real dt)
 
 
     std::vector<PotentialContact> possible_contacts;
-    possible_contacts = bvh_root->potential_contacts_inside(possible_contacts);
+    possible_contacts = bvh_root->potential_contacts_inside(possible_contacts, max_collision_contacts_);
     collision_handler.narrow_phase(possible_contacts);
     collision_handler.solve_contacts();
     collision_handler.resolve_interpretations();
 
 
     collision_handler.clear_contacts();
+}
+
+void Scene::set_from_engine_state(const EngineState& state)
+{
+    max_collision_contacts_ = state.max_collision_contacts;
 }
 
 SceneSnapshot Scene::create_snapshot() const
@@ -184,6 +197,7 @@ SceneSnapshot Scene::create_snapshot() const
 
         snapshot.object_snapshots.push_back(obj_snapshot);
     }
+    snapshot.bvh_root = bvh_root.get();
 
 
 

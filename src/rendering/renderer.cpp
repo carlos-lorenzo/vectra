@@ -16,6 +16,8 @@
 #include "vectra/rendering/renderer.h"
 #include "vectra/rendering/framebuffer.h"
 
+
+
 #include "camera.h"
 #include "utils.h"
 #include "vectra/core/scene.h"
@@ -137,21 +139,22 @@ Renderer::Renderer(EngineState* state)
     : pWindow_(nullptr), state_(state)
 {
     initialize_window();
-    light_sources = std::vector<LightSource>();
+
 
     // Initialize OpenGL-dependent objects AFTER OpenGL context is created
     skybox_ = std::make_unique<Skybox>();
     camera_ = Camera();
     projection_matrix_ = camera_.get_projection_matrix();
 
-    // Create framebuffer for scene rendering
+    // Create a framebuffer for scene rendering
     scene_fbo_ = std::make_unique<Framebuffer>(state_->scene_view_width, state_->scene_view_height);
 
-    model_shader_ = std::make_unique<Shader>("resources/shaders/model.vert", "resources/shaders/phong.frag");
+    model_shader_ = std::make_unique<Shader>("resources/shaders/model.vert", "resources/shaders/phong_multiple.frag");
     model_cache_.emplace("cube", Model("resources/models/primitives/cube.obj", false));
     model_cache_.emplace("sphere", Model("resources/models/primitives/sphere.obj", false));
     model_cache_.emplace("vector", Model("resources/models/debugging/vector.obj", false));
 
+    scene_lights_ = SceneLights();
 
 }
 
@@ -182,7 +185,7 @@ void Renderer::initialize_window()
     glEnable(GL_CULL_FACE);
     glViewport(0, 0, state_->window_width, state_->window_height);
 
-    // Start with normal cursor (not captured) - user clicks scene view to capture
+    // Start with a normal cursor (not captured) - user clicks scene view to capture
     glfwSetInputMode(pWindow_, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
     debug_drawer_ = std::make_unique<DebugDrawer>();
@@ -192,7 +195,9 @@ void Renderer::initialize_window()
 void Renderer::setup_from_scene(const Scene& scene)
 {
     camera_ = scene.camera;
-    light_sources = scene.light_sources;
+
+    scene_lights_ = scene.scene_lights;
+    skybox_ = std::make_unique<Skybox>(scene.skybox);
     projection_matrix_ = camera_.get_projection_matrix();
 
 }
@@ -225,10 +230,6 @@ void Renderer::render_scene_frame(Scene& scene, linkit::real dt)
         draw_game_object(obj, model_matrix, view_matrix, projection_matrix_, scene);
     }
 
-    // Visualise BVH
-    // if (scene.bvh_root) {
-    //     debug_drawer_->draw_bvh(scene.bvh_root.get(), view_matrix, projection_matrix);
-    // }
 
     skybox_->draw(view_matrix, projection_matrix_);
 }
@@ -283,14 +284,19 @@ void Renderer::render_to_framebuffer(const SceneSnapshot& snapshot, const linkit
 
         if (state_->draw_forces)
         {
-            debug_drawer_->set_light_sources(light_sources);
+            debug_drawer_->set_light_sources(scene_lights_, camera_position);
             debug_drawer_->draw_force(obj_snapshot.transform, obj_snapshot.force, view_matrix, projection_matrix_, camera_position);
 
         }
         if (obj_snapshot.has_spring)
         {
-            debug_drawer_->set_light_sources(light_sources);
+            debug_drawer_->set_light_sources(scene_lights_, camera_position);
             debug_drawer_->draw_spring(obj_snapshot.transform.position, obj_snapshot.spring_anchor, view_matrix, projection_matrix_, camera_position);
+        }
+        if (state_->draw_bvh && snapshot.bvh_root)
+        {
+            debug_drawer_->set_light_sources(scene_lights_, camera_position);
+            debug_drawer_->draw_bvh(snapshot.bvh_root, view_matrix, projection_matrix_);
         }
     }
 
@@ -348,17 +354,8 @@ void Renderer::draw_game_object(GameObject& obj, glm::mat4 model_matrix, glm::ma
     model_shader_->set_vec3("camera_position", camera_position);
 
 
-    if (!light_sources.empty())
-    {
-        model_shader_->set_vec3("light_position", light_sources[0].position);
-        model_shader_->set_vec3("light_colour", light_sources[0].colour);
-    } else
-    {
-        auto light_position = glm::vec3(0.0f);
-        auto light_colour = glm::vec3(1.0f);
-        model_shader_->set_vec3("light_position", light_position);
-        model_shader_->set_vec3("light_colour", light_colour);
-    }
+
+    scene_lights_.setup_lighting(*model_shader_, camera_position);
 
     model_cache_.at(obj.model_name).draw(*model_shader_);
 }
@@ -372,19 +369,13 @@ void Renderer::draw_game_object(const std::string& model_name, glm::mat4 model_m
     model_shader_->set_vec3("camera_position", camera_position);
 
 
-    if (!light_sources.empty())
-    {
-        model_shader_->set_vec3("light_position", light_sources[0].position);
-        model_shader_->set_vec3("light_colour", light_sources[0].colour);
-    } else
-    {
-        auto light_position = glm::vec3(0.0f);
-        auto light_colour = glm::vec3(1.0f);
-        model_shader_->set_vec3("light_position", light_position);
-        model_shader_->set_vec3("light_colour", light_colour);
-    }
+
+    scene_lights_.setup_lighting(*model_shader_, camera_position);
+
 
 
 
     model_cache_.at(model_name).draw(*model_shader_);
 }
+
+

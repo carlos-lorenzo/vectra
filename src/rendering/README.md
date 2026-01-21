@@ -118,19 +118,32 @@ glm::mat4 get_projection_matrix(float aspect_ratio) const;
 
 ---
 
-## Lighting (`light_source.h`, `light_source.cpp`)
+## Lighting (SceneLights)
 
-Point light source for scene illumination.
+Scene lighting uses the grouped `SceneLights` API (see `include/vectra/rendering/scene_lights.h` and `include/vectra/rendering/light_sources.h`). Scenes provide a `lights` object with optional `directional_lights`, `point_lights`, and `spot_lights` arrays.
 
-**Members:**
-| Member | Type | Description |
-|--------|------|-------------|
-| `position` | `glm::vec3` | World position |
-| `colour` | `glm::vec3` | RGB color (0-1 per channel) |
+Example: programmatically add lights to a scene
 
-**Default Values:**
-- Position: `[0, 0, 0]`
-- Colour: `[1, 1, 1]` (white)
+```cpp
+DirectionalLight sun(glm::vec3(-0.577f, -0.577f, -0.577f), glm::vec3(1.0f, 1.0f, 0.8f));
+scene->add_directional_light(sun);
+
+PointLight p(glm::vec3(0,20,20), glm::vec3(1.0f));
+scene->add_point_light(p);
+
+SpotLight spot(glm::vec3(0, 10, 0), glm::vec3(0, -1, 0), glm::vec3(1.0f));
+scene->add_spot_light(spot);
+```
+
+When loading from JSON, the `lights` object may look like:
+
+```json
+"lights": {
+  "directional_lights": [ { "direction": [ -0.2, -1.0, -0.3 ], "colour": [1,1,1] } ],
+  "point_lights": [ { "position": [0,20,20], "colour": [1,1,1], "distance": 50 } ],
+  "spot_lights": [ { "position": [0,10,0], "direction": [0,-1,0], "colour": [1,1,1] } ]
+}
+```
 
 ---
 

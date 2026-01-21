@@ -52,9 +52,9 @@ void Engine::load_scene(const std::string& filename)
     }
 
     *scene = std::move(result.scene);
-    //scene->set_engine_state(state_);
     state_.loaded_scene = filename;
     renderer->setup_from_scene(*scene);
+    scene->set_from_engine_state(state_);
 }
 
 

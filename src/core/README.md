@@ -34,7 +34,7 @@ Container for all simulation objects and systems.
 |--------|------|-------------|
 | `name` | `string` | Scene name |
 | `game_objects` | `deque<GameObject>` | All objects (deque for pointer stability) |
-| `light_sources` | `vector<LightSource>` | Scene lights |
+| `scene_lights` | `SceneLights` | Grouped scene lights (directional, point, spot) |
 | `camera` | `Camera` | View camera |
 | `skybox` | `Skybox` | Environment skybox |
 | `force_registry` | `ForceRegistry` | Object-force bindings |
@@ -44,7 +44,9 @@ Container for all simulation objects and systems.
 **Key Methods:**
 ```cpp
 void add_game_object(GameObject obj);      // Add object with auto-naming
-void add_light_source(const LightSource&); // Add light
+void add_directional_light(const DirectionalLight&); // Add directional light
+void add_point_light(const PointLight&); // Add point light
+void add_spot_light(const SpotLight&); // Add spot light
 void step(linkit::real dt);                // Advance simulation
 SceneSnapshot create_snapshot() const;     // Thread-safe state copy
 ```

@@ -9,7 +9,7 @@ Scene files use JSON format and describe a complete physics simulation scene inc
 - Camera configuration
 - Game objects with physics properties
 - Force generators applied to objects
-- Light sources
+- Scene lights (directional, point, spot)
 
 ## Schema Reference
 
@@ -20,7 +20,7 @@ Scene files use JSON format and describe a complete physics simulation scene inc
 | `name` | string | No | `"New Scene"` | Human-readable scene name |
 | `camera` | Camera | No | Default camera | Scene camera configuration |
 | `objects` | array[GameObject] | No | `[]` | Game objects in the scene |
-| `lights` | array[LightSource] | No | `[]` | Light sources in the scene |
+| `lights` | SceneLights | No | `{}` | Grouped lights object containing directional/point/spot light arrays |
 
 ### Camera
 
@@ -58,12 +58,60 @@ Scene files use JSON format and describe a complete physics simulation scene inc
 | `acceleration` | Vector3 | No | `[0, 0, 0]` | Initial linear acceleration (m/s²) |
 | `angular_acceleration` | Vector3 | No | `[0, 0, 0]` | Initial angular acceleration (rad/s²) |
 
-### LightSource
+### SceneLights
+
+The `lights` field is a single object that groups three optional arrays:
+- `directional_lights`: array[DirectionalLight]
+- `point_lights`: array[PointLight]
+- `spot_lights`: array[SpotLight]
+
+If the `lights` object is omitted the scene uses engine defaults (no explicit lights).
+
+#### DirectionalLight
 
 | Field | Type | Required | Default | Description |
 |-------|------|----------|---------|-------------|
-| `position` | Vector3 (glm) | No | `[0, 0, 0]` | Light position in world space |
-| `colour` | Vector3 (glm) | No | `[1, 1, 1]` | Light color as RGB (0.0-1.0 per channel) |
+| `direction` | Vector3 | No | `[-0.2, -1.0, -0.3]` | Direction the light is shining |
+| `colour` | Vector3 | No | `[1, 1, 1]` | Shorthand colour applied to ambient/diffuse/specular (preferred)
+| `ambient` | Vector3 | No | `[1, 1, 1]` | Ambient component |
+| `diffuse` | Vector3 | No | `[1, 1, 1]` | Diffuse component |
+| `specular` | Vector3 | No | `[1, 1, 1]` | Specular component |
+| `strength` | number | No | `0.5` | Intensity multiplier |
+
+If `colour` is supplied it overrides `ambient`/`diffuse`/`specular` (all set to that colour).
+
+#### PointLight
+
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `position` | Vector3 | No | `[0, 0, 0]` | World position |
+| `colour` | Vector3 | No | `[1, 1, 1]` | Shorthand colour; ambient = colour * 0.1, diffuse/specular = colour |
+| `ambient` | Vector3 | No | `[0.05, 0.05, 0.05]` | Ambient component |
+| `diffuse` | Vector3 | No | `[0.8, 0.8, 0.8]` | Diffuse component |
+| `specular` | Vector3 | No | `[1, 1, 1]` | Specular component |
+| `distance` | number | No | - | If supplied, `set_attenuation(distance)` is called to derive `constant/linear/quadratic` |
+| `constant` | number | No | `1.0` | Attenuation constant term (overrides `distance` if present) |
+| `linear` | number | No | `0.09` | Attenuation linear term (overrides `distance` if present) |
+| `quadratic` | number | No | `0.032` | Attenuation quadratic term (overrides `distance` if present) |
+
+Note: `distance` is a convenience to pick standard attenuation from a table; explicit `constant`/`linear`/`quadratic` values override it.
+
+#### SpotLight
+
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `position` | Vector3 | No | `[0, 0, 0]` | World position |
+| `direction` | Vector3 | No | `[0, -1, 0]` | Direction the spotlight is pointing |
+| `cut_off` | number | No | `0.9` | Inner cone cosine |
+| `outer_cut_off` | number | No | `0.85` | Outer cone cosine |
+| `colour` | Vector3 | No | `[1, 1, 1]` | Shorthand colour (ambient scaled) |
+| `ambient` | Vector3 | No | `[0, 0, 0]` | Ambient component |
+| `diffuse` | Vector3 | No | `[1, 1, 1]` | Diffuse component |
+| `specular` | Vector3 | No | `[1, 1, 1]` | Specular component |
+| `distance` | number | No | - | If supplied, `set_attenuation(distance)` is called to derive `constant/linear/quadratic` |
+| `constant` | number | No | `1.0` | Attenuation constant term (overrides `distance` if present) |
+| `linear` | number | No | `0.09` | Attenuation linear term (overrides `distance` if present) |
+| `quadratic` | number | No | `0.032` | Attenuation quadratic term (overrides `distance` if present) |
 
 ---
 
@@ -244,80 +292,44 @@ Errors prevent scene loading:
                 }
             ]
         }
-    ]
+    ],
+    "lights": {
+        "point_lights": [
+            {
+                "position": [0, 20, 20],
+                "colour": [1.0, 1.0, 1.0]
+            }
+        ]
+    }
 }
 ```
-
-This creates:
-- Scene named "New Scene" (default)
-- Default camera at origin
-- One sphere named "sphere_0" at position (0, 10, 0) with mass 1.0
-- Gravity pulling down at 9.81 m/s²
-- No lights (uses ambient)
 
 ### Complete Scene (All Fields Explicit)
 
 ```json
 {
-    "name": "Solar System Demo",
+    "name": "Complete Example Scene",
     "camera": {
-        "fov": 60.0,
+        "fov": 90.0,
         "transform": {
-            "position": [0, 50, 100],
+            "position": [0, 15, 25],
             "rotation": [1, 0, 0, 0],
             "scale": [1, 1, 1]
         }
     },
-    "objects": [
-        {
-            "name": "sun",
-            "model_name": "sphere",
-            "collider_type": "ColliderSphere",
-            "rigidbody": {
-                "transform": {
-                    "position": [0, 0, 0],
-                    "rotation": [1, 0, 0, 0],
-                    "scale": [10, 10, 10]
-                },
-                "mass": 0,
-                "velocity": [0, 0, 0],
-                "angular_velocity": [0, 0, 0],
-                "acceleration": [0, 0, 0],
-                "angular_acceleration": [0, 0, 0]
+    "objects": [ /* ... */ ],
+    "lights": {
+        "point_lights": [
+            {
+                "position": [0, 20, 20],
+                "colour": [1.0, 1.0, 0.9]
             },
-            "force_generators": []
-        },
-        {
-            "name": "planet",
-            "model_name": "sphere",
-            "collider_type": "ColliderSphere",
-            "rigidbody": {
-                "transform": {
-                    "position": [50, 0, 0],
-                    "rotation": [1, 0, 0, 0],
-                    "scale": [2, 2, 2]
-                },
-                "mass": 1000.0,
-                "velocity": [0, 0, 7.5],
-                "angular_velocity": [0, 0.1, 0],
-                "acceleration": [0, 0, 0],
-                "angular_acceleration": [0, 0, 0]
-            },
-            "force_generators": [
-                {
-                    "type": "newtonian_gravity",
-                    "gravitational_constant": 1000.0,
-                    "affected_object_indices": [0]
-                }
-            ]
-        }
-    ],
-    "lights": [
-        {
-            "position": [0, 0, 0],
-            "colour": [1.0, 0.9, 0.7]
-        }
-    ]
+            {
+                "position": [-20, 15, -10],
+                "colour": [0.5, 0.5, 0.6]
+            }
+        ]
+    }
 }
 ```
 
@@ -326,48 +338,15 @@ This creates:
 ```json
 {
     "name": "Spring Pendulum",
-    "objects": [
-        {
-            "name": "anchor",
-            "model_name": "cube",
-            "rigidbody": {
-                "transform": {
-                    "position": [0, 10, 0],
-                    "scale": [0.5, 0.5, 0.5]
-                },
-                "mass": 0
+    "objects": [ /* ... */ ],
+    "lights": {
+        "point_lights": [
+            {
+                "position": [10, 20, 10],
+                "colour": [1, 1, 1]
             }
-        },
-        {
-            "name": "pendulum_bob",
-            "model_name": "sphere",
-            "rigidbody": {
-                "transform": {
-                    "position": [5, 5, 0]
-                },
-                "mass": 2.0
-            },
-            "force_generators": [
-                {
-                    "type": "simple_gravity",
-                    "field": [0, -9.81, 0]
-                },
-                {
-                    "type": "object_anchored_spring",
-                    "object_index": 0,
-                    "spring_constant": 20.0,
-                    "rest_length": 5.0,
-                    "damping": 0.3
-                }
-            ]
-        }
-    ],
-    "lights": [
-        {
-            "position": [10, 20, 10],
-            "colour": [1, 1, 1]
-        }
-    ]
+        ]
+    }
 }
 ```
 

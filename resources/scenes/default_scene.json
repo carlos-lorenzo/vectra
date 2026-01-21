@@ -20,20 +20,17 @@
             ]
         }
     },
-    "lights": [
-        {
-            "colour": [
-                1.0,
-                1.0,
-                0.800000011920929
-            ],
-            "position": [
-                0.0,
-                10.0,
-                10.0
-            ]
-        }
-    ],
+    "lights": {
+        "directional_lights": [
+            {
+                "colour": [
+                    1.0,
+                    1.0,
+                    0.8
+                ]
+            }
+        ]
+    },
     "name": "New Scene",
     "objects": [
         {

@@ -24,9 +24,11 @@
             ]
         }
     ],
-    "lights": [
-        {
-            "position": [0, 20, 20]
-        }
-    ]
+    "lights": {
+        "point_lights": [
+            {
+                "position": [0, 20, 20]
+            }
+        ]
+    }
 }

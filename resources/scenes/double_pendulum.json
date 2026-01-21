@@ -71,10 +71,15 @@
             ]
         }
     ],
-    "lights": [
-        {
-            "position": [0, 30, 20],
-            "colour": [1.0, 1.0, 1.0]
-        }
-    ]
+    "lights": {
+        "directional_lights": [
+            {
+                "colour": [
+                    1.0,
+                    1.0,
+                    0.8
+                ]
+            }
+        ]
+    }
 }

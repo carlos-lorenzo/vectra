@@ -127,6 +127,27 @@ Mesh Model::process_mesh(aiMesh *mesh, const aiScene *scene)
         // diffuse: texture_diffuseN
         // specular: texture_specularN
         // normal: texture_normalN
+        glm::vec3 ambientColor(0.0f);
+        glm::vec3 diffuseColor(0.0f);
+        glm::vec3 specularColor(0.0f);
+        float shininess = 0.0f;
+
+        aiColor3D color(0.f, 0.f, 0.f);
+
+        // Extract Ambient
+        if (material->Get(AI_MATKEY_COLOR_AMBIENT, color) == AI_SUCCESS)
+            ambientColor = glm::vec3(color.r, color.g, color.b);
+
+        // Extract Diffuse
+        if (material->Get(AI_MATKEY_COLOR_DIFFUSE, color) == AI_SUCCESS)
+            diffuseColor = glm::vec3(color.r, color.g, color.b);
+
+        // Extract Specular (The 'Ks' in your MTL file)
+        if (material->Get(AI_MATKEY_COLOR_SPECULAR, color) == AI_SUCCESS)
+            specularColor = glm::vec3(color.r, color.g, color.b);
+
+        // Extract Shininess (The 'Ns' in MTL, often called Gloss)
+        material->Get(AI_MATKEY_SHININESS, shininess);
 
 
         // 1. diffuse maps

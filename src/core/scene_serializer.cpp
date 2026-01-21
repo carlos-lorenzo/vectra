@@ -15,7 +15,8 @@
 #include "vectra/physics/forces/object_anchored_spring.h"
 
 
-#include "vectra/rendering/light_source.h"
+#include "vectra/rendering/light_sources.h"
+#include "vectra/rendering/scene_lights.h"
 #include "vectra/rendering/camera.h"
 
 /**
@@ -262,32 +263,273 @@ inline void from_json(const json &j, Camera &camera)
 
 
 
-// LightSource
-inline void to_json(json &j, const LightSource &light)
+
+// Directional Light
+inline void to_json(json &j, const DirectionalLight &light)
 {
     j = json{
-        {"colour", light.colour},
+        {"direction", light.direction},
+        {"ambient", light.ambient},
+        {"diffuse", light.diffuse},
+        {"specular", light.specular},
+        {"strength", light.strength}
+        };
+}
+
+inline void from_json(const json &j, DirectionalLight &light)
+{
+    if (j.contains("direction"))
+        j.at("direction").get_to(light.direction);
+    else
+        light.direction = glm::vec3(-0.2f, -1.0f, -0.3f);
+    // Default strength is 0.5
+    if (j.contains("strength"))
+        j.at("strength").get_to(light.strength);
+    else
+        light.strength = 0.5f;
+
+    if (j.contains("colour"))
+    {
+        j.at("colour").get_to(light.ambient);
+        j.at("colour").get_to(light.diffuse);
+        j.at("colour").get_to(light.specular);
+        return;
+    }
+    if (j.contains("ambient"))
+        j.at("ambient").get_to(light.ambient);
+    else
+        light.ambient = glm::vec3(1.0f, 1.0f, 1.0f);
+    if (j.contains("diffuse"))
+        j.at("diffuse").get_to(light.diffuse);
+    else
+        light.diffuse = glm::vec3(1.0f, 1.0f, 1.0f);
+    if (j.contains("specular"))
+        j.at("specular").get_to(light.specular);
+    else
+        light.specular = glm::vec3(1.0f, 1.0f, 1.0f);
+}
+
+
+// Point Light
+inline void to_json(json &j, const PointLight &light)
+{
+    j = json{
         {"position", light.position},
+        {"ambient", light.ambient},
+        {"diffuse", light.diffuse},
+        {"specular", light.specular},
+        {"constant", light.constant},
+        {"linear", light.linear},
+        {"quadratic", light.quadratic}
     };
 }
 
-inline void from_json(const json &j, LightSource &light)
+inline void from_json(const json &j, PointLight &light)
 {
-    // Default colour is white [1,1,1]
-    if (j.contains("colour"))
-        j.at("colour").get_to(light.colour);
-    else
-        light.colour = glm::vec3(1.0f, 1.0f, 1.0f);
-
-    // Default position is origin [0,0,0]
+    // Default position is origin
     if (j.contains("position"))
         j.at("position").get_to(light.position);
     else
         light.position = glm::vec3(0.0f, 0.0f, 0.0f);
+
+    // If a single colour is provided, use it to set ambient/diffuse/specular similar to constructors
+    if (j.contains("colour"))
+    {
+        glm::vec3 colour;
+        j.at("colour").get_to(colour);
+        light.ambient = colour * 0.1f;
+        light.diffuse = colour;
+        light.specular = colour;
+        // Use attenuation defaults unless explicitly overridden below
+    }
+    else
+    {
+        if (j.contains("ambient"))
+            j.at("ambient").get_to(light.ambient);
+        else
+            light.ambient = glm::vec3(0.05f, 0.05f, 0.05f);
+
+        if (j.contains("diffuse"))
+            j.at("diffuse").get_to(light.diffuse);
+        else
+            light.diffuse = glm::vec3(0.8f, 0.8f, 0.8f);
+
+        if (j.contains("specular"))
+            j.at("specular").get_to(light.specular);
+        else
+            light.specular = glm::vec3(1.0f, 1.0f, 1.0f);
+    }
+
+    // Attenuation: allow specifying a distance which uses set_attenuation,
+    // but if explicit constant/linear/quadratic are provided they override.
+    if (j.contains("distance"))
+    {
+        float distance_val = j.at("distance").get<float>();
+        light.set_attenuation(distance_val);
+    }
+
+    if (j.contains("constant"))
+        j.at("constant").get_to(light.constant);
+    else if (!j.contains("distance"))
+        light.constant = 1.0f;
+
+    if (j.contains("linear"))
+        j.at("linear").get_to(light.linear);
+    else if (!j.contains("distance"))
+        light.linear = 0.09f;
+
+    if (j.contains("quadratic"))
+        j.at("quadratic").get_to(light.quadratic);
+    else if (!j.contains("distance"))
+        light.quadratic = 0.032f;
 }
 
 
-// Cant use automatic to and from method as scene data is required to pass gameobjects as arguments
+// Spotlight
+inline void to_json(json &j, const SpotLight &light)
+{
+    j = json{
+        {"position", light.position},
+        {"direction", light.direction},
+        {"cut_off", light.cut_off},
+        {"outer_cut_off", light.outer_cut_off},
+        {"ambient", light.ambient},
+        {"diffuse", light.diffuse},
+        {"specular", light.specular},
+        {"constant", light.constant},
+        {"linear", light.linear},
+        {"quadratic", light.quadratic}
+    };
+}
+
+inline void from_json(const json &j, SpotLight &light)
+{
+    // Position and direction defaults
+    if (j.contains("position"))
+        j.at("position").get_to(light.position);
+    else
+        light.position = glm::vec3(0.0f, 0.0f, 0.0f);
+
+    if (j.contains("direction"))
+        j.at("direction").get_to(light.direction);
+    else
+        light.direction = glm::vec3(0.0f, -1.0f, 0.0f);
+
+    // Cut off defaults
+    if (j.contains("cut_off"))
+        j.at("cut_off").get_to(light.cut_off);
+    else
+        light.cut_off = 0.9f;
+
+    if (j.contains("outer_cut_off"))
+        j.at("outer_cut_off").get_to(light.outer_cut_off);
+    else
+        light.outer_cut_off = 0.85f;
+
+    // Colour shorthand
+    if (j.contains("colour"))
+    {
+        glm::vec3 colour;
+        j.at("colour").get_to(colour);
+        light.ambient = colour * 0.1f;
+        light.diffuse = colour;
+        light.specular = colour;
+    }
+    else
+    {
+        if (j.contains("ambient"))
+            j.at("ambient").get_to(light.ambient);
+        else
+            light.ambient = glm::vec3(0.0f, 0.0f, 0.0f);
+
+        if (j.contains("diffuse"))
+            j.at("diffuse").get_to(light.diffuse);
+        else
+            light.diffuse = glm::vec3(1.0f, 1.0f, 1.0f);
+
+        if (j.contains("specular"))
+            j.at("specular").get_to(light.specular);
+        else
+            light.specular = glm::vec3(1.0f, 1.0f, 1.0f);
+    }
+
+    // Attenuation: accept distance for set_attenuation, but allow explicit overrides
+    if (j.contains("distance"))
+    {
+        float distance_val = j.at("distance").get<float>();
+        light.set_attenuation(distance_val);
+    }
+
+    if (j.contains("constant"))
+        j.at("constant").get_to(light.constant);
+    else if (!j.contains("distance"))
+        light.constant = 1.0f;
+
+    if (j.contains("linear"))
+        j.at("linear").get_to(light.linear);
+    else if (!j.contains("distance"))
+        light.linear = 0.09f;
+
+    if (j.contains("quadratic"))
+        j.at("quadratic").get_to(light.quadratic);
+    else if (!j.contains("distance"))
+        light.quadratic = 0.032f;
+}
+
+
+// SceneLights
+inline void to_json(json &j, const SceneLights &scene_lights)
+{
+    j = json{
+        {"directional_lights", scene_lights.directional_lights},
+        {"point_lights", scene_lights.point_lights},
+        {"spot_lights", scene_lights.spot_lights}
+    };
+}
+
+inline void from_json(const json &j, SceneLights &scene_lights)
+{
+    scene_lights.clear();
+
+    if (j.contains("directional_lights"))
+    {
+        const auto &dl = j.at("directional_lights");
+        scene_lights.directional_lights.clear();
+        for (const auto &djl : dl)
+        {
+            DirectionalLight d;
+            djl.get_to(d);
+            scene_lights.directional_lights.push_back(d);
+        }
+    }
+
+    if (j.contains("point_lights"))
+    {
+        const auto &pl = j.at("point_lights");
+        scene_lights.point_lights.clear();
+        for (const auto &pjl : pl)
+        {
+            PointLight p;
+            pjl.get_to(p);
+            scene_lights.point_lights.push_back(p);
+        }
+    }
+
+    if (j.contains("spot_lights"))
+    {
+        const auto &sl = j.at("spot_lights");
+        scene_lights.spot_lights.clear();
+        for (const auto &sjl : sl)
+        {
+            SpotLight s;
+            sjl.get_to(s);
+            scene_lights.spot_lights.push_back(s);
+        }
+    }
+}
+
+
+// Can't use automatic to and from method as scene data is required to pass gameobjects as arguments
 
 // SimpleGravity
 void simple_gravity_to_json(json &j, const SimpleGravity &gravity)
@@ -489,7 +731,7 @@ inline void to_json(json &j, const Scene &scene)
         {"name", scene.name},
         {"camera", scene.camera},
         {"objects", json::array()},
-        {"lights", json::array()}
+        {"lights", scene.scene_lights}
     };
     for (const auto& obj : scene.game_objects)
     {
@@ -526,12 +768,7 @@ inline void to_json(json &j, const Scene &scene)
         j["objects"].push_back(obj_json);
     }
 
-    for (const auto& light : scene.light_sources)
-    {
-        json light_json;
-        to_json(light_json, light);
-        j["lights"].push_back(light_json);
-    }
+    // lights already serialized as scene.scene_lights in the initializer above
 }
 
 inline void from_json(const json &j, Scene &scene)
@@ -612,17 +849,47 @@ inline void from_json(const json &j, Scene &scene)
         }
     }
 
-    // Lights array (empty by default)
+    // Lights array (SceneLights only)
     if (j.contains("lights"))
     {
+        scene.scene_lights.clear();
+
         const auto& lights_json = j.at("lights");
-        for (const auto& light_json : lights_json)
+        if (lights_json.is_array())
         {
-            LightSource light;
-            light_json.get_to(light);
-            scene.add_light_source(std::move(light));
+            for (const auto& lj : lights_json)
+            {
+                if (lj.contains("directional_lights") || lj.contains("point_lights") || lj.contains("spot_lights"))
+                {
+                    SceneLights parsed;
+                    lj.get_to(parsed);
+                    // append
+                    for (const auto& dl : parsed.directional_lights) scene.scene_lights.directional_lights.push_back(dl);
+                    for (const auto& pl : parsed.point_lights) scene.scene_lights.point_lights.push_back(pl);
+                    for (const auto& sl : parsed.spot_lights) scene.scene_lights.spot_lights.push_back(sl);
+                }
+                else
+                {
+                    emit_warning("Warning: Ignoring unknown lights entry in 'lights' array");
+                }
+            }
+        }
+        else if (lights_json.is_object())
+        {
+            const auto &lj = lights_json;
+            if (lj.contains("directional_lights") || lj.contains("point_lights") || lj.contains("spot_lights"))
+            {
+                SceneLights parsed;
+                lj.get_to(parsed);
+                scene.scene_lights = parsed;
+            }
+            else
+            {
+                emit_warning("Warning: 'lights' object does not contain valid SceneLights arrays, ignoring");
+            }
         }
     }
+
 }
 
 // Public wrappers
@@ -723,5 +990,9 @@ void SceneSerializer::write_json(const std::string& filename, const json& j)
     }
     f << j.dump(indentation_level_);
 }
+
+
+
+
 
 

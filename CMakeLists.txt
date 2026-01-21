@@ -183,8 +183,7 @@ set(SOURCES
     src/core/scene.cpp
     src/rendering/camera.cpp
     src/rendering/model.cpp
-    src/rendering/light_source.cpp
-    src/physics/force_registry.cpp
+        src/physics/force_registry.cpp
     src/physics/forces/simple_gravity.cpp
     src/physics/forces/newtonian_gravity.cpp
     src/physics/forces/anchored_spring.cpp

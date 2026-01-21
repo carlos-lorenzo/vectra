@@ -193,10 +193,10 @@ void EngineUI::setup_initial_dock_layout(ImGuiID dockspace_id)
     ImGuiID dock_main_id = dockspace_id;
     ImGuiID dock_left_id = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Left, 0.2f, nullptr, &dock_main_id);
 
-    // Split left panel into top (Hierarchy) and bottom (Inspector), each half
+    // Split the left panel into top (Hierarchy) and bottom (Inspector), each half
     ImGuiID dock_inspector = ImGui::DockBuilderSplitNode(dock_left_id, ImGuiDir_Up, 0.5f, nullptr, &dock_left_id);
 
-    // Split top from center for Toolbar
+    // Split top from the center for Toolbar
     ImGuiID dock_top_id = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Up, 0.06f, nullptr, &dock_main_id);
 
     // Dock windows
@@ -267,6 +267,23 @@ void EngineUI::draw_toolbar(EngineState& state)
         if (ImGui::Button(forces_label))
         {
             state.draw_forces = !state.draw_forces;
+        }
+        ImGui::PopStyleColor(4);
+
+        ImGui::SameLine();
+
+        // Trigger button for BVH
+        ImVec4 draw_bvh = color_orange;
+
+        ImGui::PushStyleColor(ImGuiCol_Button, draw_bvh);
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(draw_bvh.x * 0.8f, draw_bvh.y * 0.8f, draw_bvh.z * 0.8f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(draw_bvh.x * 0.6f, draw_bvh.y * 0.6f, draw_bvh.z * 0.6f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(color_foreground.x * 0.1f, color_foreground.y * 0.1f, color_foreground.z * 0.1f, 1.0f));
+
+        const char* bvh_label = state.draw_bvh ? "  Hide BVH  " : "  Draw BVH  ";
+        if (ImGui::Button(bvh_label))
+        {
+            state.draw_bvh = !state.draw_bvh;
         }
         ImGui::PopStyleColor(4);
 

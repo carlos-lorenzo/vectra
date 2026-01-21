@@ -1,5 +1,5 @@
 #version 330 core
-out vec4 FragColor;
+out vec4 frag_colour;
 
 in vec2 TexCoords;
 in vec3 Normal;
@@ -38,5 +38,5 @@ void main()
 
     // Combine and keep texture alpha
     vec3 color = (ambient + diffuse + specular) * albedo.rgb;
-    FragColor = vec4(color, albedo.a);
+    frag_colour = vec4(color, albedo.a);
 }
