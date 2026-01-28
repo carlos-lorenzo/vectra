@@ -4,6 +4,11 @@
 Vectra is a modern, extensible rigid-body physics engine written in C++. Designed for flexibility and ease of use, it enables simulation of a wide range of physical phenomena, from simple object interactions to complex systems. With a clean architecture and multithreaded design, Vectra is ideal for both real-time applications and academic exploration.
 
 ---
+![Demo](docs/screenshots/vectra_pendulum.gif)
+
+*Double pendulum demo showing live forces*
+
+---
 
 ## Features
 
