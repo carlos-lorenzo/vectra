@@ -179,7 +179,7 @@ Vectra employs an impulse-based approach for collision response, ensuring realis
 
 - **Contact Resolution**: Resolves collisions by applying impulses to separate objects and prevent interpenetration.
 - **Restitution**: Simulates bounciness by adjusting the impulse based on the coefficient of restitution.
-- **Friction Handling**: Incorporates frictional forces to simulate realistic sliding and rolling behaviors.
+- **Friction Handling**: Incorporates frictional forces to simulate realistic sliding and rolling behaviors (work in progress).
 - **Multi-Contact Support**: Handles multiple contact points for complex interactions, such as stacked objects.
 
 This approach is computationally efficient and well-suited for real-time simulations, making it ideal for games and interactive applications.
